@@ -20,6 +20,17 @@ const {
 
 const expectedRoutes = ["/projects/archmet/", "/projects/harmonova/"];
 
+test("Rigoryn keeps its inbound route and portfolio data excludes live status", () => {
+  assert.equal(projects[0].name, "Rigoryn");
+  assert.equal(projects[0].id, "rigoryn");
+  assert.equal(getProjectPath(projects[0]), "/projects/archmet/");
+  for (const project of projects) {
+    assert.ok(!Object.hasOwn(project, "status"));
+    assert.ok(!Object.hasOwn(project, "plannedCapabilities"));
+    assert.doesNotMatch(JSON.stringify(project), /Current Status|In development|Experimental learning project|roadmap|Archmet/);
+  }
+});
+
 test("every project has a unique non-empty slug and required content", () => {
   assert.equal(projects.length, expectedRoutes.length);
   validateProjects(projects);
@@ -32,11 +43,7 @@ test("every project has a unique non-empty slug and required content", () => {
     assert.ok(project.problem.length > 0);
     assert.ok(project.solution.length > 0);
     assert.ok(project.modules.length > 0);
-    const capabilityCount =
-      (project.implementedCapabilities?.length ?? 0) +
-      (project.inProgressCapabilities?.length ?? 0) +
-      (project.plannedCapabilities?.length ?? 0);
-    assert.ok(capabilityCount > 0);
+    assert.ok(project.capabilities.length > 0);
     assert.ok(project.technologies.length > 0);
     assert.ok(project.seoTitle?.length > 0);
     assert.ok(project.seoDescription?.length > 0);

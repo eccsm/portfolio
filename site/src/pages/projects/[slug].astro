@@ -26,28 +26,7 @@ const { project, previous, next } = Astro.props;
 const title = getProjectSeoTitle(project);
 const description = getProjectSeoDescription(project);
 const canonicalUrl = getProjectCanonicalUrl(project);
-const statusLabels = {
-  implemented: "Implemented",
-  "in-progress": "In progress",
-  planned: "Planned",
-} as const;
-const capabilitySections = [
-  {
-    id: "implemented-heading",
-    title: "Implemented",
-    items: project.implementedCapabilities ?? [],
-  },
-  {
-    id: "in-progress-heading",
-    title: "In progress",
-    items: project.inProgressCapabilities ?? [],
-  },
-  {
-    id: "planned-heading",
-    title: "Planned",
-    items: project.plannedCapabilities ?? [],
-  },
-].filter((section) => section.items.length > 0);
+const capabilitySections = [{id: "capabilities-heading", title: "Engineering design", items: project.capabilities}];
 const relatedCaseStudies = project.relatedCaseStudySlugs
   .map((slug) => getCaseStudyBySlug(slug))
   .filter(Boolean);
@@ -119,7 +98,6 @@ const projectJsonLd = {
       }
 
       <div class="meta-row">
-        <p class="status-badge">{project.statusLabel}</p>
         <p class="muted">Role: {project.role}</p>
       </div>
 
@@ -154,7 +132,6 @@ const projectJsonLd = {
             {
               project.modules.map((module) => (
                 <article class="card module-card">
-                  <p class="mini-status">{statusLabels[module.status]}</p>
                   <h3>{module.name}</h3>
                   <p>{module.summary}</p>
                 </article>
@@ -200,9 +177,6 @@ const projectJsonLd = {
                   <article class="card capability-card">
                     <div class="capability-header">
                       <h3>{capability.title}</h3>
-                      <span class="mini-status">
-                        {statusLabels[capability.status]}
-                      </span>
                     </div>
                     <p>{capability.detail}</p>
                   </article>
@@ -243,11 +217,7 @@ const projectJsonLd = {
           )
         }
 
-        <section aria-labelledby="status-heading">
-          <h2 id="status-heading">Current Status</h2>
-          <p>{project.statusNote}</p>
-          {project.namingNote && <p class="muted">{project.namingNote}</p>}
-        </section>
+        {project.namingNote && <p class="muted">{project.namingNote}</p>}
 
         {
           ((project.repositoryLinks && project.repositoryLinks.length > 0) ||
@@ -384,19 +354,6 @@ const projectJsonLd = {
     gap: var(--space-3) var(--space-4);
     align-items: center;
     margin: var(--space-4) 0 0;
-  }
-
-  .status-badge,
-  .mini-status {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-chip);
-    background: var(--color-chip-bg);
-    color: var(--color-chip-text);
-    font-family: var(--font-mono);
-    font-size: var(--text-chip);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .summary {

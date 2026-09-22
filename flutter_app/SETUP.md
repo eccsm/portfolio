@@ -2,13 +2,10 @@
 
 ## Run locally
 
-```bash
-flutter pub get
-flutter run -d chrome
-```
-
-That's it — the app has no required environment files or secrets. Resume
-content lives in `lib/pdf/resume_constants.dart`.
+Use the [Interactive Lab guide](../docs/interactive-lab.md) for the integrated
+Astro/Flutter build, local server, mock mode and optional live Jev configuration.
+The multi-view bootstrap expects the Astro host. Resume content lives in
+`site/src/data/resume.ts` and is emitted as JSON for Flutter.
 
 ### Optional: phone number in the PDF
 
@@ -16,7 +13,7 @@ The phone number is intentionally not committed. To include it in the
 generated PDF, pass it at build/run time:
 
 ```bash
-flutter run -d chrome --dart-define=RESUME_PHONE="+90 5XX XXX XXXX"
+flutter build web --dart-define=RESUME_PHONE="+90 5XX XXX XXXX"
 ```
 
 ## WebLLM (on-device chat AI)

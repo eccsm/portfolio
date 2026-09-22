@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -84,20 +85,22 @@ test('parseSitemap and loadSitemapUrls support sitemap indexes and urlsets', asy
 });
 
 test('loadSitemapUrls resolves nested sitemap files locally during dry runs', async () => {
+  const indexPath = resolve('dist', 'sitemap-index.xml');
+  const pagePath = resolve('dist', 'sitemap-0.xml');
   const files = new Map([
     [
-      'C:/site/dist/sitemap-index.xml',
+      indexPath,
       '<?xml version="1.0"?><sitemapindex><sitemap><loc>https://ekincan.casim.net/sitemap-0.xml</loc></sitemap></sitemapindex>',
     ],
     [
-      'C:/site/dist/sitemap-0.xml',
+      pagePath,
       '<?xml version="1.0"?><urlset><url><loc>https://ekincan.casim.net/</loc></url><url><loc>https://ekincan.casim.net/case-studies/allianz-core-transformation/</loc></url></urlset>',
     ],
   ]);
 
-  const urls = await loadSitemapUrls('C:/site/dist/sitemap-index.xml', {
+  const urls = await loadSitemapUrls(indexPath, {
     loadText: async (source) => {
-      const match = files.get(source.replaceAll('\\', '/'));
+      const match = files.get(source);
       if (!match) {
         throw new Error(`Unexpected sitemap source: ${source}`);
       }
