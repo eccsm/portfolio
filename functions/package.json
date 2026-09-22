@@ -1,0 +1,9 @@
+{
+  "name": "portfolio-lab-api",
+  "private": true,
+  "type": "module",
+  "main": "index.mjs",
+  "engines": { "node": "22" },
+  "scripts": { "test": "node --test", "check": "node --check index.mjs && node --check jev.mjs" },
+  "dependencies": { "firebase-functions": "^7.4.0" }
+}

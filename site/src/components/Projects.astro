@@ -9,7 +9,6 @@ import { getProjectPath, projects } from '../data/resume';
       <article class="card project-card">
         <div class="card-header">
           <div>
-            <p class="status-chip">{project.statusLabel}</p>
             <h3>
               <a class="title-link" href={getProjectPath(project)}>
                 {project.name}
@@ -53,18 +52,6 @@ import { getProjectPath, projects } from '../data/resume';
     align-items: start;
   }
 
-  .status-chip {
-    display: inline-block;
-    margin: 0 0 var(--space-2);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-chip);
-    background: var(--color-chip-bg);
-    color: var(--color-chip-text);
-    font-family: var(--font-mono);
-    font-size: var(--text-chip);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
 
   .title-link {
     color: inherit;

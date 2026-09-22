@@ -1,17 +1,28 @@
 # casim.net — portfolio monorepo
 
-One repo, one deployment. The Astro site is the shell served at
+One repository, a shared static deployment, and an optional Jev function. The Astro site is the shell served at
 [ekincan.casim.net](https://ekincan.casim.net); the Flutter app is embedded in it as a
-lazy-loaded "interactive mode" overlay.
+lazy-loaded **Interactive Lab** overlay.
+
+Astro holds durable professional content; Flutter hosts executable engineering experiments.
+Local Intelligence retains MLC LLM browser inference through WebGPU. Jev Guessr
+demonstrates bounded probabilistic decisions: Choice, Noul and Score evaluate the
+same minimal state independently, while Dart owns validation, thresholds, scoring
+and game state. A Firebase Function keeps the TypeSafe credential server-side.
+
+See [Interactive Lab documentation](docs/interactive-lab.md) for mock development,
+exact configuration, server provisioning, architecture and verification commands.
+Jev is feature-flagged off by default; mock mode requires no API key.
 
 ## Layout
 
 | Path | What it is |
 |---|---|
 | [`site/`](site/README.md) | Astro static site — the deployed artifact (`site/dist`). Semantic HTML resume, design tokens, JSON-LD/OG/sitemap. |
-| [`flutter_app/`](flutter_app/README.md) | Flutter Web app, built into `site/public/assets/flutter/` and booted on demand as a multi-view island. Hosts the WebLLM in-browser AI chat (no server, no API keys). |
+| [`flutter_app/`](flutter_app/README.md) | Interactive Lab, built into `site/public/assets/flutter/` and booted on demand. Local WebLLM inference and feature-flagged Jev Guessr. |
 | [`analytics/`](analytics/README.md) | Self-hosted Umami (docker-compose) for stats.casim.net. |
 | `scripts/` | Root build pipeline (see below). |
+| `functions/` | Small Firebase HTTP boundary for Jev; no database or accounts. |
 
 ## Single source of truth
 

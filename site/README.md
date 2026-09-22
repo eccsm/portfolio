@@ -2,7 +2,8 @@
 
 Static single-page resume site — the deployed shell of the monorepo (see the
 [root README](../README.md)). The Flutter app in `../flutter_app` embeds into
-it as the lazy-loaded "interactive mode" overlay.
+it as the lazy-loaded Interactive Lab overlay. See the [lab guide](../docs/interactive-lab.md)
+for experiment configuration and the Jev server boundary.
 
 ## Commands
 

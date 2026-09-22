@@ -169,7 +169,7 @@ class ResumeKnowledge {
         q.contains('ci/cd')) {
       return 'Ekincan is experienced with cloud-native deployments on AWS, Azure, '
           'and GCP. He manages Kubernetes/Rancher container orchestration, Jenkins '
-          'and GitLab CI/CD pipelines, Terraform, and Ansible. He recently migrated '
+          'and GitLab CI/CD pipelines, Terraform, and Ansible. He migrated '
           'observability from ELK to Graylog at Medisa.';
     }
 
@@ -200,7 +200,7 @@ class ResumeKnowledge {
     if (q.contains('project') || q.contains('github') || q.contains('repo')) {
       return 'You can find his projects in the Online Presence section below — '
           'pinned GitHub repositories, contribution activity, and platform badges. '
-          'This interactive resume site itself is one of his Flutter projects.';
+          'This portfolio and Interactive Lab is one of his Flutter projects.';
     }
 
     if (q.contains('experience') ||

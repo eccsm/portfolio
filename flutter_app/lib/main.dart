@@ -1,4 +1,6 @@
 import 'dart:ui' show FlutterView;
+import 'labs/lab_page.dart';
+import 'labs/local_intelligence_page.dart';
 
 import 'package:cc_resume_app/data/resume_repository.dart';
 import 'package:cc_resume_app/models/resume.dart';
@@ -27,7 +29,14 @@ void main() {
   // the widget tree is rendered per FlutterView instead of runApp's implicit
   // single view. Running standalone (flutter run) works the same — there is
   // exactly one implicit view.
-  runWidget(MultiViewApp(viewBuilder: (context) => const ResumeBootstrap()));
+  runWidget(MultiViewApp(
+      viewBuilder: (context) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => ThemeProvider()),
+              ChangeNotifierProvider(create: (_) => WebLLMService()),
+            ],
+            child: const ResumeApp(),
+          )));
 }
 
 /// Renders one widget subtree per active [FlutterView], following the
@@ -137,8 +146,7 @@ class _ResumeBootstrapState extends State<ResumeBootstrap> {
                         const Text('Could not load resume data.'),
                         const SizedBox(height: 4),
                         Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Text(
                             '${snapshot.error}',
                             style: const TextStyle(fontSize: 12),
@@ -172,7 +180,7 @@ class ResumeApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: '${Resume.I.name} — ${Resume.I.title}',
+      title: 'Interactive Lab',
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
       builder: (context, widget) => ResponsiveBreakpoints.builder(
@@ -186,7 +194,7 @@ class ResumeApp extends StatelessWidget {
       ),
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      home: const ResumePage(),
+      home: LabPage(localIntelligence: (_) => const LocalIntelligencePage()),
     );
   }
 }
@@ -626,15 +634,13 @@ class _ResumePageState extends State<ResumePage>
   /// Feeds fetched GitHub repos into the chatbot's system prompt so the
   /// AI assistant can talk about live projects.
   void _onReposLoaded(List<Map<String, dynamic>> repos) {
-    final summaries = repos
-        .map((r) {
-          final desc = (r['description'] ?? '').toString();
-          final lang = (r['language'] ?? '').toString();
-          return '${r['name']}'
-              '${lang.isNotEmpty ? ' ($lang)' : ''}'
-              '${desc.isNotEmpty ? ': $desc' : ''}';
-        })
-        .toList();
+    final summaries = repos.map((r) {
+      final desc = (r['description'] ?? '').toString();
+      final lang = (r['language'] ?? '').toString();
+      return '${r['name']}'
+          '${lang.isNotEmpty ? ' ($lang)' : ''}'
+          '${desc.isNotEmpty ? ': $desc' : ''}';
+    }).toList();
     context.read<WebLLMService>().updateSystemPrompt(pinnedRepos: summaries);
   }
 

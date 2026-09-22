@@ -57,6 +57,13 @@ try {
       `--base-href=${base}`,
       `--output=${outDir}`,
     ];
+    // Explicit allowlist of public compile-time values; never forward server secrets.
+    const enableJev = process.env.ENABLE_JEV_GUESSR ?? 'false';
+    const jevProvider = process.env.JEV_PROVIDER ?? 'mock';
+    if (!['true', 'false'].includes(enableJev) || !['mock', 'typesafe'].includes(jevProvider)) {
+      throw new Error('Invalid public Jev configuration');
+    }
+    args.push(`--dart-define=ENABLE_JEV_GUESSR=${enableJev}`, `--dart-define=JEV_PROVIDER=${jevProvider}`);
     // Optional; the PDF omits the phone entry when unset. Public repo — the
     // number itself must only ever exist in CI secrets / local env.
     if (process.env.RESUME_PHONE) {

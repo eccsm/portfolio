@@ -53,8 +53,6 @@ export interface CaseStudyRouteChange {
   toSlug: string | null;
 }
 
-export type ProjectStatus = "in-development" | "experimental-learning";
-export type ProjectDetailStatus = "implemented" | "in-progress" | "planned";
 
 export interface ProjectLink {
   label: string;
@@ -64,13 +62,11 @@ export interface ProjectLink {
 export interface ProjectModule {
   name: string;
   summary: string;
-  status: ProjectDetailStatus;
 }
 
 export interface ProjectBullet {
   title: string;
   detail: string;
-  status: ProjectDetailStatus;
 }
 
 export interface ProjectDecision {
@@ -85,9 +81,6 @@ export interface Project {
   tagline: string;
   supportingMessage?: string;
   shortSummary: string;
-  status: ProjectStatus;
-  statusLabel: string;
-  statusNote: string;
   role: string;
   executiveSummary: string[];
   problem: string[];
@@ -100,9 +93,7 @@ export interface Project {
   technologies: string[];
   privacyOrSecurityTitle?: string;
   privacyOrSecurity?: string[];
-  implementedCapabilities?: ProjectBullet[];
-  inProgressCapabilities?: ProjectBullet[];
-  plannedCapabilities?: ProjectBullet[];
+  capabilities: ProjectBullet[];
   repositoryLinks?: ProjectLink[];
   documentationLinks?: ProjectLink[];
   relatedCaseStudySlugs: string[];
@@ -353,25 +344,21 @@ export const caseStudyRouteChanges: CaseStudyRouteChange[] =
 
 export const projects: Project[] = validateProjects([
   {
-    id: "archmet",
+    id: "rigoryn",
     slug: "archmet",
-    name: "Archmet",
+    name: "Rigoryn",
     tagline: "Deterministic software intelligence for architecture governance",
     supportingMessage: "Measure architecture. Govern change.",
     shortSummary:
       "A deterministic software-intelligence platform for analyzing architecture, dependencies, structural risks, and technical debt across multi-language systems, with AI reserved for explaining verified findings.",
-    status: "in-development",
-    statusLabel: "In development",
-    statusNote:
-      "Archmet is under active development. This page reflects the current platform direction and separates active work from roadmap items.",
     role: "Creator, software architect, deterministic analysis design, optional AI interpretation strategy",
     executiveSummary: [
-      "Archmet is a deterministic software-intelligence platform for architecture analysis, dependency intelligence, and technical-debt governance across multiple programming languages.",
+      "Rigoryn is a deterministic software-intelligence platform for architecture analysis, dependency intelligence, and technical-debt governance across multiple programming languages.",
       "Its analysis engine is designed to produce evidence-backed findings from shared models, metrics, and graph relationships. Archimet is the optional AI layer that explains those findings without replacing deterministic analysis.",
     ],
     problem: [
       "Architecture drift rarely shows up as a single lint error. The harder problems are structural: coupling hotspots, dependency cycles, layering erosion, N+1 patterns, and slow technical-debt accumulation across services and modules.",
-      "I am building Archmet to make those issues measurable and reviewable while keeping the source of truth in deterministic analysis rather than opaque model output.",
+      "Rigoryn is designed to make those issues measurable and reviewable while keeping the source of truth in deterministic analysis rather than opaque model output.",
     ],
     solution: [
       "The platform is designed around a unified analysis model that can normalize multiple languages into one dependency and architecture view.",
@@ -386,7 +373,7 @@ export const projects: Project[] = validateProjects([
     architecture: [
       "The architecture separates language-specific parsers from a shared class and dependency model so findings can be scored consistently across ecosystems.",
       "The analysis model is designed to capture metrics such as WMC, LCOM, CBO, RFC, fan-in/fan-out, and cyclomatic complexity, alongside higher-level detections like god classes, coupling hotspots, circular dependencies, and N+1 query patterns.",
-      "The broader platform direction includes a scanner/CLI, CI enforcement, server-side reporting, dashboard views, and the optional Archimet interpretation layer.",
+      "The design separates a scanner/CLI, server-side reporting, and the optional Archimet interpretation layer.",
     ],
     keyDecisions: [
       {
@@ -431,44 +418,17 @@ export const projects: Project[] = validateProjects([
       {
         name: "Scanner / CLI",
         summary:
-          "The current platform direction centers on a scanner/CLI as the deterministic analysis entry point for local runs, CI, and report generation.",
-        status: "in-progress",
-      },
-      {
-        name: "CI templates and GitHub Action",
-        summary:
-          "Quality-gate automation for pull requests and architecture budgets is part of the delivery surface being shaped around the core engine.",
-        status: "planned",
+          "The scanner/CLI is designed as the deterministic analysis entry point for local runs, CI, and report generation.",
       },
       {
         name: "Server REST API",
         summary:
-          "Persisted reports, async analysis jobs, diffs, and webhook integration belong to the service layer being developed around the analysis engine.",
-        status: "in-progress",
-      },
-      {
-        name: "Dashboard",
-        summary:
-          "A dashboard for architecture scores, dependency exploration, trends, and what-if analysis is planned alongside the core engine.",
-        status: "planned",
-      },
-      {
-        name: "IDE plugins",
-        summary:
-          "Editor integrations for inline diagnostics and local feedback loops fit the product direction, but they remain roadmap-level in this portfolio repository.",
-        status: "planned",
-      },
-      {
-        name: "Chat integrations",
-        summary:
-          "Slack, Teams, and Zoom Team Chat integrations belong to the enterprise governance roadmap.",
-        status: "planned",
+          "The service layer is designed to separate report persistence and analysis jobs from the analysis engine.",
       },
       {
         name: "Archimet optional LLM layer",
         summary:
           "Archimet is the optional AI interpretation layer for grounded explanations, refactoring guidance, and natural-language interaction around deterministic findings.",
-        status: "in-progress",
       },
     ],
     technologies: [
@@ -493,53 +453,41 @@ export const projects: Project[] = validateProjects([
     ],
     privacyOrSecurityTitle: "Privacy and deployment",
     privacyOrSecurity: [
-      "Archmet is positioned as self-hosted first so source code and findings can stay inside the team infrastructure.",
+      "Rigoryn is positioned as self-hosted first so source code and findings can stay inside the team infrastructure.",
       "The AI layer is designed around BYO-LLM support, including local model options such as Ollama or llama.cpp when teams want deterministic analysis without mandatory cloud inference.",
       "That separation keeps deterministic analysis useful on its own while AI-assisted interpretation remains an explicit deployment choice.",
     ],
-    inProgressCapabilities: [
+    capabilities: [
       {
         title: "Deterministic architecture analysis",
         detail:
-          "Active work centers on deterministic parsing, dependency graphs, and architecture-aware rules that produce evidence-backed findings.",
-        status: "in-progress",
+          "The analysis design combines deterministic parsing, dependency graphs, and architecture-aware rules for evidence-backed findings.",
       },
       {
         title: "Unified multi-language analysis model",
         detail:
-          "The platform is being shaped around a shared analysis model, with language adapters feeding one governance-oriented view instead of isolated parser reports.",
-        status: "in-progress",
+          "The platform is designed around a shared analysis model, with language adapters feeding one governance-oriented view instead of isolated parser reports.",
       },
       {
         title: "Evidence-backed risk scoring",
         detail:
           "Metrics, thresholds, and graph paths are intended to stay attached to each finding so architectural decisions can be reviewed and defended.",
-        status: "in-progress",
       },
       {
         title: "Optional LLM interpretation",
         detail:
-          "Archimet is being developed as an explanation layer that works from verified findings rather than generating them.",
-        status: "in-progress",
-      },
-    ],
-    plannedCapabilities: [
-      {
-        title: "Enterprise governance surface",
-        detail:
-          "The roadmap includes organization-level trends, scaled CI automation, chat integrations, and SSO-aware governance surfaces.",
-        status: "planned",
+          "Archimet is designed as an explanation layer that works from verified findings rather than generating them.",
       },
     ],
     relatedCaseStudySlugs: [
       "allianz-core-transformation",
       "insurance-ddd-kafka",
     ],
-    seoTitle: "Archmet - Deterministic Software Intelligence | Ekincan Casim",
+    seoTitle: "Rigoryn - Deterministic Software Intelligence | Ekincan Casim",
     seoDescription:
-      "Archmet is a deterministic software-intelligence platform for architecture analysis, technical-debt governance, multi-language code intelligence, and optional AI-assisted interpretation.",
+      "Rigoryn is a deterministic software-intelligence platform for architecture analysis, technical-debt governance, multi-language code intelligence, and optional AI-assisted interpretation.",
     namingNote:
-      "Archmet is the product name. Archimet names the optional AI interpretation layer, and the original AMF codename remains in machine-facing identifiers for compatibility.",
+      "Rigoryn is the product name. Archimet names the optional AI interpretation layer, and the original AMF codename remains in machine-facing identifiers for compatibility.",
   },
   {
     id: "harmonova",
@@ -547,11 +495,7 @@ export const projects: Project[] = validateProjects([
     name: "Harmonova",
     tagline: "Production-oriented intelligent music-system architecture",
     shortSummary:
-      "An experimental but production-oriented intelligent music-system architecture that combines a deterministic music-theory core with Spring AI orchestration, MCP service boundaries, retrieval, and isolated audio analysis.",
-    status: "experimental-learning",
-    statusLabel: "Experimental learning project",
-    statusNote:
-      "Harmonova is an active experimental system. This page distinguishes the deterministic core, the services being developed around it, and the roadmap still ahead.",
+      "An intelligent music-system architecture that combines a deterministic music-theory core with Spring AI orchestration, MCP service boundaries, retrieval, and isolated audio analysis.",
     role: "Creator, software architect, deterministic domain modeling, Spring AI orchestration, MCP boundary design",
     executiveSummary: [
       "Harmonova explores how deterministic domain models, retrieval, AI orchestration, and specialized analysis services can work together in a production-oriented intelligent system.",
@@ -620,25 +564,21 @@ export const projects: Project[] = validateProjects([
         name: "harmonova-core",
         summary:
           "The deterministic music-theory and beat-generation core is the center of the system and is kept free of Spring, AI, and audio dependencies.",
-        status: "in-progress",
       },
       {
         name: "harmonova-mcp-server",
         summary:
           "The MCP server wraps deterministic core operations so model-facing orchestration can use tools without polluting the domain layer.",
-        status: "in-progress",
       },
       {
         name: "harmonova",
         summary:
           "The Spring Boot application carries REST endpoints, agents, retrieval, provider routing, and the user-facing orchestration layer.",
-        status: "in-progress",
       },
       {
         name: "harmonova-audio-analysis-service",
         summary:
           "The Python and FastAPI audio-analysis service contains the DSP and ML workload that intentionally sits outside the pure domain core.",
-        status: "in-progress",
       },
     ],
     technologies: [
@@ -668,38 +608,26 @@ export const projects: Project[] = validateProjects([
       "The architecture keeps audio bytes, DSP, and ML behind a single HTTP boundary instead of letting those concerns spread through the rest of the Java system.",
       "Provider routing stays explicit so deterministic domain logic can remain stable even as AI components evolve.",
     ],
-    inProgressCapabilities: [
+    capabilities: [
       {
         title: "Deterministic music theory in core",
         detail:
-          "Active development centers on a pure Java core for scales, chord progressions, melody analysis, seeded beat composition, and MIDI-oriented domain operations.",
-        status: "in-progress",
+          "The domain design centers on a pure Java core for scales, chord progressions, melody analysis, seeded beat composition, and MIDI-oriented domain operations.",
       },
       {
         title: "Agent orchestration over deterministic facts",
         detail:
-          "The tutor and beat-maker flows are being built so Spring AI agents plan and explain around deterministic tools instead of inventing theory facts.",
-        status: "in-progress",
+          "The tutor and beat-maker flows are designed so Spring AI agents plan and explain around deterministic tools instead of inventing theory facts.",
       },
       {
         title: "Retrieval and tool integration",
         detail:
           "RAG, local retrieval components, and MCP tools provide the grounding layer around the core domain model.",
-        status: "in-progress",
       },
       {
         title: "Isolated audio analysis service",
         detail:
-          "Audio-analysis and ML workloads are being kept in a separate Python service so the core and orchestration layers stay focused.",
-        status: "in-progress",
-      },
-    ],
-    plannedCapabilities: [
-      {
-        title: "Stronger audio classification path",
-        detail:
-          "The roadmap includes moving beyond heuristic genre and mood analysis toward a stronger classification path.",
-        status: "planned",
+          "The architecture isolates audio-analysis and ML workloads in a separate Python service so the core and orchestration layers stay focused.",
       },
     ],
     repositoryLinks: [
@@ -723,7 +651,7 @@ export const projects: Project[] = validateProjects([
     relatedCaseStudySlugs: ["genai-hr-chatbot"],
     seoTitle: "Harmonova - Deterministic Music AI Architecture | Ekincan Casim",
     seoDescription:
-      "Harmonova is an experimental, production-oriented intelligent music-system architecture combining deterministic music theory, Spring AI orchestration, MCP tools, retrieval, and isolated audio analysis.",
+      "Harmonova explores intelligent music-system architecture combining deterministic music theory, Spring AI orchestration, MCP tools, retrieval, and isolated audio analysis.",
   },
 ]);
 
@@ -834,8 +762,6 @@ export function validateProjects(records: Project[]): Project[] {
       ["name", record.name],
       ["tagline", record.tagline],
       ["shortSummary", record.shortSummary],
-      ["statusLabel", record.statusLabel],
-      ["statusNote", record.statusNote],
       ["role", record.role],
     ] as const;
 
@@ -861,14 +787,8 @@ export function validateProjects(records: Project[]): Project[] {
         `Project "${record.slug}" must describe at least one module.`,
       );
     }
-    const implementedCount = record.implementedCapabilities?.length ?? 0;
-    const inProgressCount = record.inProgressCapabilities?.length ?? 0;
-    const plannedCount = record.plannedCapabilities?.length ?? 0;
-
-    if (implementedCount + inProgressCount + plannedCount === 0) {
-      throw new Error(
-        `Project "${record.slug}" must describe capability status.`,
-      );
+    if (!record.capabilities.length) {
+      throw new Error(`Project "${record.slug}" must describe engineering capabilities.`);
     }
     if (record.technologies.length === 0) {
       throw new Error(`Project "${record.slug}" must list technologies.`);
