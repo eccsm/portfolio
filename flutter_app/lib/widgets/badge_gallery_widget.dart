@@ -9,12 +9,14 @@ class BadgeGalleryWidget extends StatefulWidget {
     this.huggingFaceUsername = 'eccsm',
     this.githubUsername = 'eccsm',
     this.showSkillBadges = true,
+    this.showTitle = true,
     this.repository,
   });
 
   final String huggingFaceUsername;
   final String githubUsername;
   final bool showSkillBadges;
+  final bool showTitle;
   final BadgeRepository? repository;
 
   @override
@@ -53,12 +55,14 @@ class _BadgeGalleryWidgetState extends State<BadgeGalleryWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Productivity',
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 16),
+        if (widget.showTitle) ...[
+          Text(
+            'Productivity',
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 16),
+        ],
         RefreshIndicator(
           onRefresh: _refresh,
           child: FutureBuilder<List<BadgeData>>(
@@ -155,7 +159,10 @@ class BadgePalette {
   final Color border;
   final Color shadow;
 
-  static const huggingFace = BadgePalette(Color(0xFFFFD21E),Color(0xFFFFD21E),);
+  static const huggingFace = BadgePalette(
+    Color(0xFFFFD21E),
+    Color(0xFFFFD21E),
+  );
   static const harmonova = BadgePalette(Color(0xFF1A4B71), Color(0xFF1A4B71));
   static const linguana = BadgePalette(Color(0xFF6746B9), Color(0xFF6746B9));
 }
