@@ -1,6 +1,5 @@
 import 'dart:ui' show FlutterView;
-import 'labs/lab_page.dart';
-import 'labs/local_intelligence_page.dart';
+import 'labs/jev_guessr/jev_guessr_page.dart';
 
 import 'package:cc_resume_app/data/resume_repository.dart';
 import 'package:cc_resume_app/models/resume.dart';
@@ -29,14 +28,7 @@ void main() {
   // the widget tree is rendered per FlutterView instead of runApp's implicit
   // single view. Running standalone (flutter run) works the same — there is
   // exactly one implicit view.
-  runWidget(MultiViewApp(
-      viewBuilder: (context) => MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (_) => ThemeProvider()),
-              ChangeNotifierProvider(create: (_) => WebLLMService()),
-            ],
-            child: const ResumeApp(),
-          )));
+  runWidget(MultiViewApp(viewBuilder: (_) => const ResumeBootstrap()));
 }
 
 /// Renders one widget subtree per active [FlutterView], following the
@@ -194,13 +186,14 @@ class ResumeApp extends StatelessWidget {
       ),
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      home: LabPage(localIntelligence: (_) => const LocalIntelligencePage()),
+      home: const ResumePage(),
     );
   }
 }
 
 class ResumePage extends StatefulWidget {
-  const ResumePage({super.key});
+  final bool initialChatOpen;
+  const ResumePage({super.key, this.initialChatOpen = false});
 
   @override
   State<ResumePage> createState() => _ResumePageState();
@@ -212,17 +205,13 @@ class _ResumePageState extends State<ResumePage>
   bool _chatOpen = false;
 
   final Map<String, GlobalKey> _sectionKeys = {
-    'professional_summary': GlobalKey(),
-    'experience': GlobalKey(),
-    'skills': GlobalKey(),
-    'certifications': GlobalKey(),
-    'languages': GlobalKey(),
-    'education': GlobalKey(),
-    'online_presence': GlobalKey(),
+    'jev_guessr': GlobalKey(),
+    'github_contributions': GlobalKey(),
+    'productivity': GlobalKey(),
   };
 
   final ScrollController _scrollController = ScrollController();
-  String _activeSection = 'professional_summary';
+  String _activeSection = 'jev_guessr';
 
   late AnimationController _bgController;
   late Animation<double> _bgAnimation;
@@ -232,6 +221,7 @@ class _ResumePageState extends State<ResumePage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    _chatOpen = widget.initialChatOpen;
     _bgController = AnimationController(
       duration: const Duration(seconds: 20),
       vsync: this,
@@ -247,7 +237,7 @@ class _ResumePageState extends State<ResumePage>
   }
 
   void _updateActiveSectionOnScroll() {
-    String current = 'professional_summary';
+    String current = 'jev_guessr';
     double best = double.negativeInfinity;
     for (final entry in _sectionKeys.entries) {
       final ctx = entry.value.currentContext;
@@ -281,10 +271,12 @@ class _ResumePageState extends State<ResumePage>
   }
 
   void _scrollToSection(String section) {
+    final targetSection =
+        _sectionKeys.containsKey(section) ? section : 'github_contributions';
     setState(() {
-      _activeSection = section;
+      _activeSection = targetSection;
     });
-    final key = _sectionKeys[section];
+    final key = _sectionKeys[targetSection];
     if (key != null) {
       final ctx = key.currentContext;
       if (ctx != null) {
@@ -341,6 +333,79 @@ class _ResumePageState extends State<ResumePage>
     );
   }
 
+  Widget _buildInteractiveContent() {
+    final isLargeScreen = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    const accentColor = AppTheme.primaryColor;
+    const provider =
+        String.fromEnvironment('JEV_PROVIDER', defaultValue: 'mock');
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: EdgeInsets.fromLTRB(
+        isLargeScreen ? 24 : 16,
+        isLargeScreen ? 24 : 86,
+        isLargeScreen ? 24 : 16,
+        24,
+      ),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HeroSection(
+            onDownloadCv: () => PdfConfig.exportResumePdf(context),
+            onOpenChat: () {
+              if (!_chatOpen) _toggleChat();
+            },
+            onViewProjects: () => _scrollToSection('jev_guessr'),
+            showSocialIcons: !isLargeScreen,
+          ),
+          RevealOnScroll(
+            child: Container(
+              key: _sectionKeys['jev_guessr'],
+              child: const SectionCard(
+                title: 'Jev Guessr',
+                icon: Icons.account_tree_outlined,
+                accentColor: accentColor,
+                content: JevGuessrPage(
+                  mock: provider != 'typesafe',
+                  embedded: true,
+                ),
+              ),
+            ),
+          ),
+          RevealOnScroll(
+            child: Container(
+              key: _sectionKeys['github_contributions'],
+              child: const SectionCard(
+                title: 'GitHub Contributions',
+                icon: Icons.grid_on_rounded,
+                accentColor: accentColor,
+                content: GithubRealContributionGraph(
+                  username: 'eccsm',
+                  refreshInterval: Duration(hours: 24),
+                ),
+              ),
+            ),
+          ),
+          RevealOnScroll(
+            child: Container(
+              key: _sectionKeys['productivity'],
+              child: const SectionCard(
+                title: 'Productivity',
+                icon: Icons.auto_awesome_rounded,
+                accentColor: accentColor,
+                content: BadgeGalleryWidget(showTitle: false),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Kept as the full portfolio composition so the interactive overlay can
+  // return to it without reconstructing the original Flutter design.
+  // ignore: unused_element
   Widget _buildResumeContent() {
     bool isLargeScreen = ResponsiveBreakpoints.of(context).largerThan(TABLET);
     final colors = AppTheme.getColors(context);
@@ -706,7 +771,7 @@ class _ResumePageState extends State<ResumePage>
                     Expanded(
                       child: Stack(
                         children: [
-                          _buildResumeContent(),
+                          _buildInteractiveContent(),
                           // Chat Overlay
                           if (_chatOpen)
                             Positioned(

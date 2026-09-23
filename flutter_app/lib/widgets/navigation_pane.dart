@@ -128,39 +128,19 @@ class _NavigationPaneState extends State<NavigationPane> {
 
     final List<Map<String, dynamic>> navLinks = [
       {
-        'title': 'About',
-        'icon': Icons.person_outline_rounded,
-        'section': 'professional_summary'
+        'title': 'Jev Guessr',
+        'icon': Icons.account_tree_outlined,
+        'section': 'jev_guessr'
       },
       {
-        'title': 'Professional Journey',
-        'icon': Icons.timeline_rounded,
-        'section': 'experience'
+        'title': 'GitHub Contributions',
+        'icon': Icons.grid_on_rounded,
+        'section': 'github_contributions'
       },
       {
-        'title': 'Technical Skills',
-        'icon': Icons.code_rounded,
-        'section': 'skills'
-      },
-      {
-        'title': 'Certifications',
-        'icon': Icons.workspace_premium_rounded,
-        'section': 'certifications'
-      },
-      {
-        'title': 'Languages',
-        'icon': Icons.language_rounded,
-        'section': 'languages'
-      },
-      {
-        'title': 'Education',
-        'icon': Icons.school_rounded,
-        'section': 'education'
-      },
-      {
-        'title': 'Online Presence',
-        'icon': Icons.public_rounded,
-        'section': 'online_presence'
+        'title': 'Productivity',
+        'icon': Icons.auto_awesome_rounded,
+        'section': 'productivity'
       },
     ];
 

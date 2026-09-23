@@ -14,11 +14,13 @@ Astro static portfolio (Firebase Hosting)
             → Dart thresholds, scoring and round state
 ```
 
-The Flutter registry is `flutter_app/lib/labs/lab_registry.dart`. Local Intelligence retains the original `ChatContainer`, model controls, WebLLM bridge, downloads, and fallback behavior. Résumé context loads only when that experiment opens; Jev and the lab home do not depend on it. Existing résumé widgets remain available in source. Closing an experiment returns to the lab; closing the overlay returns to Astro.
+The interactive overlay uses the original Flutter portfolio shell: profile navigation, hero, animated background, section cards, social/PDF footer and the floating `ChatContainer`. Its focused content is Jev Guessr, GitHub Contributions and Productivity. Closing the overlay returns to Astro. The workspace loads shared résumé context before initializing the assistant.
 
 The existing deployment builds Flutter into `site/public/assets/flutter/<git hash>/`, then builds Astro into `site/dist`. No model download occurs just by loading Astro. Existing COOP/COEP headers and WebLLM asset loading remain in place. Flutter already fetches résumé JSON and public GitHub/contribution APIs; local inference does not require an API credential.
 
 ## Jev boundary
+
+The desktop sidebar and mobile drawer use the original navigation styling and scroll to the three focused sections. Social and PDF actions remain in the sidebar footer, the theme control remains above them, and the compact assistant opens from the original hero action or bottom-right chat button. Jev is embedded in a standard section card without a nested app bar or separate route.
 
 ```text
                     State
