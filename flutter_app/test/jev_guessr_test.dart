@@ -184,6 +184,28 @@ void main() {
         throwsA(isA<DecisionFailure>()));
     provider.dispose();
   });
+  test('session score, streak and history track rounds locally', () async {
+    final game =
+        GameController(MockSemanticDecisionProvider(), random: Random(3));
+    final clue = MockSemanticDecisionProvider.clues[game.target]!;
+    await game.submit('nothing useful');
+    expect(game.history.single.status, isNot(GameStatus.success));
+    await game.submit('it goes with $clue');
+    expect(game.status, GameStatus.success);
+    expect(game.history.length, 2);
+    expect(game.sessionScore, game.points);
+    expect((game.streak, game.roundsWon), (1, 1));
+    final previous = game.target;
+    game.nextRound();
+    expect(game.target, isNot(previous));
+    expect(game.history, isEmpty);
+    expect(game.streak, 1);
+    await game.submit('nothing useful');
+    game.nextRound();
+    expect(game.streak, 0);
+    expect(game.sessionScore, greaterThan(0));
+    game.dispose();
+  });
   test('disposing a pending controller does not notify after disposal',
       () async {
     final provider = PendingProvider();

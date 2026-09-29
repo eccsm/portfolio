@@ -13,10 +13,10 @@ import { experiences } from '../data/resume';
             {exp.company} · {exp.location}
           </p>
           <p class="period">
-            <time datetime={exp.start}>{exp.periodLabel.split(' – ')[0]}</time>
+            <time datetime={exp.start}>{exp.periodLabel.split(/\s[-–]\s/)[0]}</time>
             {' – '}
             {exp.end ? (
-              <time datetime={exp.end}>{exp.periodLabel.split(' – ')[1]}</time>
+              <time datetime={exp.end}>{exp.periodLabel.split(/\s[-–]\s/)[1]}</time>
             ) : (
               <span>Present</span>
             )}

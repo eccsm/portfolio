@@ -5,13 +5,18 @@
 // fetched resume.json (Resume.I), so resume facts only ever need updating in
 // site/src/data/resume.ts.
 
+import 'package:flutter/material.dart' show IconData, Icons;
+
 import '../models/resume.dart';
 
 /// A suggested question rendered as a tappable chip in the chat UI.
 class SuggestedQuestion {
+  final IconData icon;
   final String label;
   final String query;
-  const SuggestedQuestion(this.label, this.query);
+  // Icons, not emoji: Flutter web has no emoji font until one is fetched, so
+  // emoji labels rendered as empty boxes.
+  const SuggestedQuestion(this.icon, this.label, this.query);
 }
 
 class ResumeKnowledge {
@@ -89,11 +94,16 @@ class ResumeKnowledge {
   // ────────────────────────────────────────────────────────────────
 
   static const List<SuggestedQuestion> suggestedQuestions = [
-    SuggestedQuestion('🏗 Architecture', 'What architecture experience does Ekincan have?'),
-    SuggestedQuestion('☕ Java & Spring', 'How deep is his Java and Spring Boot expertise?'),
-    SuggestedQuestion('🤖 AI projects', 'Has he built anything with AI or LLMs?'),
-    SuggestedQuestion('📂 Projects', 'Show me his projects'),
-    SuggestedQuestion('📄 Download CV', 'Can I download his resume as PDF?'),
+    SuggestedQuestion(Icons.account_tree_outlined, 'Architecture',
+        'What architecture experience does Ekincan have?'),
+    SuggestedQuestion(Icons.coffee_outlined, 'Java & Spring',
+        'How deep is his Java and Spring Boot expertise?'),
+    SuggestedQuestion(Icons.smart_toy_outlined, 'AI projects',
+        'Has he built anything with AI or LLMs?'),
+    SuggestedQuestion(
+        Icons.folder_open_rounded, 'Projects', 'Show me his projects'),
+    SuggestedQuestion(Icons.description_outlined, 'Download CV',
+        'Can I download his resume as PDF?'),
   ];
 
   // ────────────────────────────────────────────────────────────────
@@ -107,14 +117,18 @@ class ResumeKnowledge {
     if (q.contains('project') || q.contains('github') || q.contains('repo')) {
       return 'online_presence';
     }
-    if (q.contains('experience') || q.contains('career') || q.contains('work history')) {
+    if (q.contains('experience') ||
+        q.contains('career') ||
+        q.contains('work history')) {
       return 'experience';
     }
     if (q.contains('skill') || q.contains('stack') || q.contains('technolog')) {
       return 'skills';
     }
     if (q.contains('certif')) return 'certifications';
-    if (q.contains('educat') || q.contains('degree') || q.contains('university')) {
+    if (q.contains('educat') ||
+        q.contains('degree') ||
+        q.contains('university')) {
       return 'education';
     }
     return null;

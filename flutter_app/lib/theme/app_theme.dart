@@ -4,18 +4,22 @@ import 'package:google_fonts/google_fonts.dart';
 /// AppTheme – 2026 premium design system
 class AppTheme {
   // ─── Brand Palette ───────────────────────────────────────────────
-  static const Color primaryColor = Color(0xFFFBAD48);
-  static const Color primaryDark = Color(0xFFE8991A);
-  static const Color primaryLight = Color(0xFFFFCA80);
+  static const Color primaryColor = Color(0xFFE8A33D); // Astro accent-fill
+  static const Color primaryDark = Color(0xFF96610B); // AA text on light
+  static const Color primaryLight = Color(0xFFF4C77F);
   static const Color secondaryColor = Color(0xFF6366F1); // indigo-500
   static const Color accentGreen = Color(0xFF34D399);
+  static const Color accentRed = Color(0xFFF87171);
+
+  /// Text/icon colour on amber fills (white on amber fails WCAG AA).
+  static const Color onPrimary = Color(0xFF14100A);
 
   // ─── Dark-mode surfaces ──────────────────────────────────────────
-  static const Color _darkBg = Color(0xFF0A0E17);
-  static const Color _darkSurface = Color(0xFF141B2D);
-  static const Color _darkCard = Color(0xFF1A2235);
-  static const Color _darkCardHeader = Color(0xFF1F2A40);
-  static const Color _darkBorder = Color(0xFF2A3550);
+  static const Color _darkBg = Color(0xFF0F1115);
+  static const Color _darkSurface = Color(0xFF151821);
+  static const Color _darkCard = Color(0xFF191D26);
+  static const Color _darkCardHeader = Color(0xFF1F2430);
+  static const Color _darkBorder = Color(0xFF2A2F3B);
 
   // ─── Light-mode surfaces ─────────────────────────────────────────
   static const Color _lightBg = Color(0xFFEDF0F5);       // cool blue-grey bg
@@ -36,6 +40,7 @@ class AppTheme {
         seedColor: secondaryColor,
         brightness: Brightness.light,
         primary: primaryColor,
+        onPrimary: onPrimary,
         secondary: secondaryColor,
         surface: _lightSurface,
       ),
@@ -70,14 +75,14 @@ class AppTheme {
       dividerColor: _lightBorder,
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        foregroundColor: onPrimary,
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: onPrimary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
@@ -103,6 +108,7 @@ class AppTheme {
         seedColor: secondaryColor,
         brightness: Brightness.dark,
         primary: primaryColor,
+        onPrimary: onPrimary,
         secondary: secondaryColor,
         surface: _darkSurface,
       ),
@@ -137,14 +143,14 @@ class AppTheme {
       dividerColor: _darkBorder,
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        foregroundColor: onPrimary,
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: onPrimary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
@@ -222,10 +228,10 @@ class AppTheme {
         glassSurface: _darkCard.withAlpha(180),
         glassStroke: Colors.white.withAlpha(15),
         glowColor: primaryColor.withAlpha(40),
-        gradientStart: const Color(0xFF141B2D),
-        gradientEnd: const Color(0xFF0A0E17),
-        navBackground: const Color(0xFF0D1220),
-        navSurface: const Color(0xFF141D30),
+        gradientStart: const Color(0xFF151821),
+        gradientEnd: const Color(0xFF0F1115),
+        navBackground: const Color(0xFF0D0F13),
+        navSurface: const Color(0xFF151821),
       );
     } else {
       return ThemeColors(

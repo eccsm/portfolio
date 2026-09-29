@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'pdf/pdf_config.dart';
+import 'widgets/aurora_background.dart';
 import 'widgets/badge_gallery_widget.dart';
 import 'widgets/certification_carousel_widget.dart';
 import 'widgets/github_activity_calendar_widget.dart';
@@ -199,8 +200,7 @@ class ResumePage extends StatefulWidget {
   State<ResumePage> createState() => _ResumePageState();
 }
 
-class _ResumePageState extends State<ResumePage>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
   // Chat state — no longer initializes WebLLM here
   bool _chatOpen = false;
 
@@ -213,25 +213,12 @@ class _ResumePageState extends State<ResumePage>
   final ScrollController _scrollController = ScrollController();
   String _activeSection = 'jev_guessr';
 
-  late AnimationController _bgController;
-  late Animation<double> _bgAnimation;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
     _chatOpen = widget.initialChatOpen;
-    _bgController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _bgAnimation = CurvedAnimation(
-      parent: _bgController,
-      curve: Curves.easeInOut,
-    );
-
     // Scroll-spy: highlight the section currently in view in the nav pane.
     _scrollController.addListener(_updateActiveSectionOnScroll);
   }
@@ -256,6 +243,10 @@ class _ResumePageState extends State<ResumePage>
     }
   }
 
+  void _openChat() {
+    if (!_chatOpen) _toggleChat();
+  }
+
   void _toggleChat() {
     setState(() {
       _chatOpen = !_chatOpen;
@@ -266,11 +257,14 @@ class _ResumePageState extends State<ResumePage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
-    _bgController.dispose();
     super.dispose();
   }
 
   void _scrollToSection(String section) {
+    if (section == 'assistant') {
+      _openChat();
+      return;
+    }
     final targetSection =
         _sectionKeys.containsKey(section) ? section : 'github_contributions';
     setState(() {
@@ -289,49 +283,7 @@ class _ResumePageState extends State<ResumePage>
     }
   }
 
-  Widget _buildAnimatedBackground() {
-    final colors = AppTheme.getColors(context);
-
-    return AnimatedBuilder(
-      animation: _bgAnimation,
-      // The static photo is passed as `child` so only the gradient overlay
-      // rebuilds each frame.
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-      builder: (context, child) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            child!,
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colors.gradientStart.withValues(alpha: 0.82),
-                    colors.background.withValues(alpha: 0.88),
-                    colors.gradientEnd.withValues(alpha: 0.82),
-                  ],
-                  stops: [
-                    0.0,
-                    0.4 + (_bgAnimation.value * 0.2),
-                    1.0,
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  Widget _buildAnimatedBackground() => const AuroraBackground();
 
   Widget _buildInteractiveContent() {
     final isLargeScreen = ResponsiveBreakpoints.of(context).largerThan(TABLET);
@@ -343,7 +295,7 @@ class _ResumePageState extends State<ResumePage>
       controller: _scrollController,
       padding: EdgeInsets.fromLTRB(
         isLargeScreen ? 24 : 16,
-        isLargeScreen ? 24 : 86,
+        isLargeScreen ? 24 : 16,
         isLargeScreen ? 24 : 16,
         24,
       ),
@@ -353,23 +305,40 @@ class _ResumePageState extends State<ResumePage>
         children: [
           HeroSection(
             onDownloadCv: () => PdfConfig.exportResumePdf(context),
-            onOpenChat: () {
-              if (!_chatOpen) _toggleChat();
-            },
-            onViewProjects: () => _scrollToSection('jev_guessr'),
+            onOpenChat: _openChat,
+            onPrimaryAction: () => _scrollToSection('jev_guessr'),
             showSocialIcons: !isLargeScreen,
+            features: [
+              HeroFeature(
+                icon: Icons.psychology_alt_rounded,
+                title: 'Jev Guessr',
+                subtitle: 'Semantic decisions, explained',
+                color: AppTheme.primaryColor,
+                onTap: () => _scrollToSection('jev_guessr'),
+              ),
+              HeroFeature(
+                icon: Icons.memory_rounded,
+                title: 'On-device AI',
+                subtitle: 'WebLLM on WebGPU, no server',
+                color: AppTheme.secondaryColor,
+                onTap: _openChat,
+              ),
+              HeroFeature(
+                icon: Icons.insights_rounded,
+                title: 'Live activity',
+                subtitle: 'GitHub contributions & projects',
+                color: AppTheme.accentGreen,
+                onTap: () => _scrollToSection('github_contributions'),
+              ),
+            ],
           ),
+          // Jev renders its own card chrome — it is the lab's centrepiece.
           RevealOnScroll(
             child: Container(
               key: _sectionKeys['jev_guessr'],
-              child: const SectionCard(
-                title: 'Jev Guessr',
-                icon: Icons.account_tree_outlined,
-                accentColor: accentColor,
-                content: JevGuessrPage(
-                  mock: provider != 'typesafe',
-                  embedded: true,
-                ),
+              child: const JevGuessrPage(
+                mock: provider != 'typesafe',
+                embedded: true,
               ),
             ),
           ),
@@ -415,7 +384,7 @@ class _ResumePageState extends State<ResumePage>
       controller: _scrollController,
       padding: EdgeInsets.fromLTRB(
         isLargeScreen ? 24 : 16,
-        isLargeScreen ? 24 : 86,
+        isLargeScreen ? 24 : 16,
         isLargeScreen ? 24 : 16,
         24,
       ),
@@ -433,10 +402,9 @@ class _ResumePageState extends State<ResumePage>
             // the desktop side nav already shows them.
             HeroSection(
               onDownloadCv: () => PdfConfig.exportResumePdf(context),
-              onOpenChat: () {
-                if (!_chatOpen) _toggleChat();
-              },
-              onViewProjects: () => _scrollToSection('online_presence'),
+              onOpenChat: _openChat,
+              onPrimaryAction: () => _scrollToSection('online_presence'),
+              primaryActionLabel: 'View projects',
               showSocialIcons: !isLargeScreen,
             ),
 
@@ -668,7 +636,7 @@ class _ResumePageState extends State<ResumePage>
               child: Icon(
                 _chatOpen ? Icons.close_rounded : Icons.chat_bubble_rounded,
                 key: ValueKey(_chatOpen),
-                color: _chatOpen ? Colors.white : AppTheme.primaryColor,
+                color: _chatOpen ? AppTheme.onPrimary : AppTheme.primaryColor,
                 size: 24,
               ),
             ),
