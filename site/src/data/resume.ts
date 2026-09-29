@@ -171,8 +171,9 @@ export const profile: Profile = {
   title: "Software Architect & Senior Java Engineer",
   location: "Istanbul, Turkey",
   headline:
-    "I design and modernize enterprise platforms in insurance, banking, and " +
-    "retail - hands-on with Java 21, Spring Boot 3.x, Kafka, and Kubernetes.",
+    "I design and modernize enterprise platforms for insurance, banking, and " +
+    "retail - turning legacy systems into cloud-native, event-driven " +
+    "services, hands-on in modern Java and Spring.",
   intro:
     "Software Architect and Senior Java Engineer with 10+ years designing and " +
     "delivering enterprise-scale platforms in insurance, banking, and retail. " +
@@ -181,10 +182,10 @@ export const profile: Profile = {
     "architectures on Kafka, and embedding regulatory compliance (data " +
     "protection, auditability) into system design. Hands-on leader: architect " +
     "who still writes production code, mentors engineers, and drives decisions " +
-    "through design reviews. Expert in Java 21, Spring Boot 3.x, domain-driven " +
-    "design, and cloud-native delivery on Kubernetes.",
+    "through design reviews. Expert in modern Java and Spring Boot, " +
+    "domain-driven design, and cloud-native delivery on Kubernetes.",
   tagline:
-    "Enterprise platforms in insurance, banking, and retail - Java 21, Spring Boot 3.x, Kafka, Kubernetes.",
+    "Software architect modernizing enterprise platforms in insurance, banking, and retail - modern Java, Spring, event-driven and cloud-native systems.",
 };
 
 export const experiences: ExperienceEntry[] = [
