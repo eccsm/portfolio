@@ -47,6 +47,8 @@ Target matching is intentionally simple: case folding and ASCII punctuation/spac
 | `JEV_API_ENABLED` | SERVER ONLY, non-secret Firebase parameter | `false`; explicit server kill switch |
 | `JEV_MODEL` | SERVER ONLY, non-secret Firebase parameter | `jev-latest`; requested model alias |
 | `TYPESAFE_API_KEY` | SECRET / SERVER ONLY | Firebase Secret Manager; never a Dart define or Astro variable |
+| `JEV_DAILY_LIMIT` | SERVER ONLY, non-secret Firebase parameter | `20`; live evaluations per visitor per rolling 24 hours |
+| `JEV_GLOBAL_DAILY_LIMIT` | SERVER ONLY, non-secret Firebase parameter | `1000`; live evaluations for all visitors per UTC day (spend guard) |
 
 The root build forwards only the two explicit public Jev variables. Invalid provider values fail the build; the Flutter registry also fails closed. CI production reads the two public repository variables. PR previews force mock mode. Existing analytics and IndexNow configuration is unchanged. Never put a reusable credential in `PUBLIC_*`, `--dart-define`, or a file under `site/public` or `flutter_app/web`.
 
@@ -76,10 +78,29 @@ npm --prefix functions ci
 $env:ENABLE_JEV_GUESSR='true'
 $env:JEV_PROVIDER='typesafe'
 node scripts/build.mjs
-firebase emulators:start --only hosting,functions --project resume-63067
+firebase emulators:start --only hosting,functions,firestore --project resume-63067
 ```
 
 Visit `http://localhost:5000`. Both local files are ignored. Use the hosting emulator so `/api/jev-guessr` reaches the function; the static development server does not proxy API requests.
+
+## Per-visitor quota
+
+Live evaluations are metered in `functions/quota.mjs`. A visitor is an HMAC-SHA256 of the client IP keyed with a value derived from the server secret, so raw IPs are never stored and keys cannot be recomputed without the secret. Each visitor gets `JEV_DAILY_LIMIT` evaluations in a 24-hour window that starts with their first evaluation; `JEV_GLOBAL_DAILY_LIMIT` caps everyone per UTC day.
+
+- Quota is taken only after validation and before the paid upstream call; upstream failures refund it. Invalid input never counts.
+- Counters live in Firestore (`jevQuota/{visitor}`, `jevQuotaDaily/{yyyy-mm-dd}`) and are updated in a transaction. Each document carries `expiresAt` for a TTL policy.
+- If the quota store is unavailable the endpoint fails closed with `503` rather than spending unmetered.
+- Responses include `quota: {limit, remaining, resetAt}` plus `RateLimit-*` headers; refusals are `429` with `dailyLimit` (personal) or `busy` (global) and `Retry-After`. `GET /api/jev-guessr` returns the caller's quota without calling upstream.
+- The client IP comes from Hosting's `Fastly-Client-IP`. The direct function URL lets a caller vary that header, so the per-visitor limit is a fairness control; the global cap is the spend guard.
+
+One-time setup: create the default Firestore database (Native mode, `nam5` or `us-central1`), then enable TTL so expired counters are deleted:
+
+```powershell
+gcloud firestore fields ttls update expiresAt --collection-group=jevQuota --enable-ttl --project resume-63067
+gcloud firestore fields ttls update expiresAt --collection-group=jevQuotaDaily --enable-ttl --project resume-63067
+```
+
+The Admin SDK bypasses Firestore security rules; the default deny-all rules keep the collections private to the function.
 
 ## Deployment and public traffic
 
@@ -93,7 +114,7 @@ firebase deploy --only functions:jevGuessr --project resume-63067
 
 Then set repository variables `ENABLE_JEV_GUESSR=true`, `JEV_PROVIDER=typesafe` and deploy Hosting through the existing workflow. Until provisioned, keep the feature disabled or choose mock. A disabled API returns a sanitized unavailable response. Hosting forwards only the fixed `/api/jev-guessr` path; the function accepts only JSON POSTs and supplies no cross-origin permission.
 
-The function caps instances at 2 and concurrency at 8. These are concurrency controls, **not a per-visitor rate limit or spend cap**. Firebase HTTP functions do not provide a simple built-in per-IP quota. For public live use, apply provider account quotas/budget controls; if sustained abuse requires per-IP throttling, [Google Cloud Armor rate limiting](https://cloud.google.com/armor/docs/rate-limiting-overview) requires a load balancer/serverless NEG and ingress restrictions (including the direct function URL). That infrastructure is intentionally outside this small demo. Origin/CORS is not authentication. Upstream 429 responses are safely surfaced for manual retry. No automatic retry multiplies paid requests.
+The function caps instances at 2 and concurrency at 8. These are concurrency controls; per-visitor and global limits come from the Firestore quota above. Still apply provider account quotas/budget controls as the last line of defence; if sustained abuse requires network-level per-IP throttling, [Google Cloud Armor rate limiting](https://cloud.google.com/armor/docs/rate-limiting-overview) requires a load balancer/serverless NEG and ingress restrictions (including the direct function URL). That infrastructure is intentionally outside this small demo. Origin/CORS is not authentication. Upstream 429 responses are safely surfaced for manual retry. No automatic retry multiplies paid requests.
 
 ## Checks
 

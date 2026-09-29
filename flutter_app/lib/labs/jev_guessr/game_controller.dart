@@ -31,11 +31,24 @@ class GameController extends ChangeNotifier {
   int roundsWon = 0;
   int streak = 0;
   final List<AttemptRecord> history = [];
+
+  /// Live-mode allowance reported by the server; null in mock mode or
+  /// before the first response.
+  DailyQuota? quota;
   bool _disposed = false;
   GameController(this.provider, {Random? random})
       : random = random ?? Random() {
     target = category.pick(this.random);
+    if (provider case final QuotaSource source) {
+      source.fetchQuota().then((q) {
+        if (_disposed || q == null) return;
+        quota = q;
+        notifyListeners();
+      });
+    }
   }
+
+  bool get limitReached => quota?.exhaustedAt(DateTime.now()) ?? false;
   void nextRound([GuessCategory? newCategory]) {
     if (status == GameStatus.evaluating) return;
     // Skipping an unsolved round that already had evaluated attempts breaks
@@ -58,6 +71,11 @@ class GameController extends ChangeNotifier {
 
   Future<void> submit(String description) async {
     if (status == GameStatus.evaluating || status == GameStatus.success) return;
+    if (limitReached) {
+      status = GameStatus.limitReached;
+      notifyListeners();
+      return;
+    }
     message = GamePolicy.validate(description, target);
     decision = null;
     sentState = null;
@@ -75,6 +93,7 @@ class GameController extends ChangeNotifier {
       final result = await provider.evaluate(sentState!);
       if (_disposed) return;
       decision = result;
+      quota = result.quota ?? quota;
       attempts++;
       status = GamePolicy.decide(result, target);
       points = status == GameStatus.success
@@ -89,7 +108,9 @@ class GameController extends ChangeNotifier {
           result.identity.choice, result.identity.probability));
     } catch (error) {
       if (_disposed) return;
-      status = GameStatus.upstreamFailure;
+      final limited = error is DecisionFailure && error.limitReached;
+      status = limited ? GameStatus.limitReached : GameStatus.upstreamFailure;
+      if (error is DecisionFailure && error.quota != null) quota = error.quota;
       message = error is DecisionFailure
           ? error.message
           : 'The decision service is unavailable. Please retry.';

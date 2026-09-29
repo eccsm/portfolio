@@ -117,6 +117,8 @@ void main() {
     final provider = JevSemanticDecisionProvider(
         endpoint: Uri.parse('https://example.test/api/jev-guessr'),
         client: MockClient((request) async {
+          // The start-up quota GET is not an evaluation.
+          if (request.method == 'GET') return http.Response('', 502);
           calls++;
           expect(jsonDecode(request.body).keys, ['category', 'description']);
           expect(request.headers.containsKey('Authorization'), false);
@@ -204,6 +206,85 @@ void main() {
     game.nextRound();
     expect(game.streak, 0);
     expect(game.sessionScore, greaterThan(0));
+    game.dispose();
+  });
+  test('live quota is read on start, updated per answer and enforced',
+      () async {
+    final reset = DateTime.utc(2026, 9, 30, 10).millisecondsSinceEpoch;
+    var remaining = 2;
+    final requests = <String>[];
+    Map<String, dynamic> answer(String choice) => {
+          'model': 'jev-1.13.0',
+          'apiLatencyMs': 5,
+          'identity': {
+            'choice': choice,
+            'probability': .92,
+            'probabilities': {
+              for (final o in ['APPLE', 'PEAR', 'ORANGE', 'BANANA', 'OTHER'])
+                o: o == choice ? .92 : .02
+            }
+          },
+          'sufficiency': {'probability': .95},
+          'ambiguity': {'score': .2},
+        };
+    final provider = JevSemanticDecisionProvider(
+        endpoint: Uri.parse('https://example.test/api/jev-guessr'),
+        client: MockClient((request) async {
+          requests.add(request.method);
+          final quota = {'limit': 2, 'remaining': remaining, 'resetAt': reset};
+          if (request.method == 'GET') {
+            return http.Response(
+                jsonEncode({
+                  'quota': {'limit': 2, 'remaining': 2, 'resetAt': null}
+                }),
+                200);
+          }
+          if (remaining == 0) {
+            return http.Response(
+                jsonEncode({'error': 'dailyLimit', 'quota': quota}), 429);
+          }
+          remaining--;
+          quota['remaining'] = remaining;
+          return http.Response(
+              jsonEncode({...answer('OTHER'), 'quota': quota}), 200);
+        }));
+    final game = GameController(provider, random: Random(2));
+    await Future<void>.delayed(Duration.zero);
+    expect((game.quota!.limit, game.quota!.remaining), (2, 2));
+    await game.submit('a descriptive clue');
+    expect(game.quota!.remaining, 1);
+    await game.submit('another descriptive clue');
+    expect(game.quota!.remaining, 0);
+    expect(game.limitReached, isTrue);
+    await game.submit('a third clue');
+    expect(game.status, GameStatus.limitReached);
+    expect(requests, ['GET', 'POST', 'POST'],
+        reason: 'an exhausted quota is enforced before any request');
+    game.dispose();
+  });
+  test('a server-side daily limit refusal becomes limitReached', () async {
+    final provider = JevSemanticDecisionProvider(
+        endpoint: Uri.parse('https://example.test/api/jev-guessr'),
+        client: MockClient((request) async => request.method == 'GET'
+            ? http.Response('{}', 200)
+            : http.Response(
+                jsonEncode({
+                  'error': 'dailyLimit',
+                  'quota': {
+                    'limit': 20,
+                    'remaining': 0,
+                    'resetAt': DateTime.now()
+                        .add(const Duration(hours: 3))
+                        .millisecondsSinceEpoch
+                  }
+                }),
+                429)));
+    final game = GameController(provider);
+    await game.submit('a descriptive clue');
+    expect(game.status, GameStatus.limitReached);
+    expect(game.attempts, 0);
+    expect(game.quota!.remaining, 0);
+    expect(game.message, contains('20'));
     game.dispose();
   });
   test('disposing a pending controller does not notify after disposal',

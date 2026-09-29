@@ -54,14 +54,27 @@ class ScoreDecision {
             probabilities == null ? null : Map.unmodifiable(probabilities);
 }
 
+/// Server-side allowance for live evaluations: [limit] per rolling 24 hours
+/// per visitor. [resetAt] is null until the visitor's window has started.
+class DailyQuota {
+  final int limit;
+  final int remaining;
+  final DateTime? resetAt;
+  const DailyQuota(this.limit, this.remaining, [this.resetAt]);
+
+  bool exhaustedAt(DateTime now) =>
+      remaining <= 0 && resetAt != null && now.isBefore(resetAt!);
+}
+
 class SemanticDecision {
   final ChoiceDecision identity;
   final NoulDecision sufficiency;
   final ScoreDecision ambiguity;
   final String? model;
   final int? apiLatencyMs;
+  final DailyQuota? quota;
   const SemanticDecision(this.identity, this.sufficiency, this.ambiguity,
-      {this.model, this.apiLatencyMs});
+      {this.model, this.apiLatencyMs, this.quota});
 }
 
 enum GameStatus {
@@ -72,7 +85,8 @@ enum GameStatus {
   insufficientDescription,
   modelUncertain,
   incorrectGuess,
-  upstreamFailure
+  upstreamFailure,
+  limitReached
 }
 
 class GamePolicy {

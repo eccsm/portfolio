@@ -74,7 +74,19 @@ class _JevGuessrPageState extends State<JevGuessrPage>
     super.dispose();
   }
 
-  String get resultText =>
+  String get resultText {
+    if (game.status == GameStatus.limitReached) {
+      final resetAt = game.quota?.resetAt;
+      final base =
+          game.message ?? 'You have used all your live guesses for now.';
+      return resetAt == null
+          ? base
+          : '$base More in ${formatTimeUntil(resetAt)}.';
+    }
+    return _statusText;
+  }
+
+  String get _statusText =>
       game.message ??
       switch (game.status) {
         GameStatus.ready => 'Describe it without using the word itself.',
@@ -91,7 +103,8 @@ class _JevGuessrPageState extends State<JevGuessrPage>
       };
 
   bool get _busy => game.status == GameStatus.evaluating;
-  bool get _canSubmit => !_busy && game.status != GameStatus.success;
+  bool get _canSubmit =>
+      !_busy && game.status != GameStatus.success && !game.limitReached;
 
   void _submit() {
     if (_canSubmit) game.submit(input.text);
@@ -275,6 +288,10 @@ class _JevGuessrPageState extends State<JevGuessrPage>
                   ),
               ],
             ),
+            const SizedBox(height: 14),
+          ],
+          if (game.quota != null) ...[
+            QuotaMeter(quota: game.quota!),
             const SizedBox(height: 14),
           ],
           if (!widget.mock) ...[

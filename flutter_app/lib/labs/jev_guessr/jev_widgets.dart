@@ -601,7 +601,7 @@ class GlowButton extends StatelessWidget {
   }
 }
 
-enum _Tone { info, working, good, warn, bad }
+enum _Tone { info, working, good, warn, bad, limit }
 
 _Tone _toneFor(GameStatus s) => switch (s) {
       GameStatus.ready => _Tone.info,
@@ -612,6 +612,7 @@ _Tone _toneFor(GameStatus s) => switch (s) {
       GameStatus.incorrectGuess =>
         _Tone.warn,
       GameStatus.invalidDescription || GameStatus.upstreamFailure => _Tone.bad,
+      GameStatus.limitReached => _Tone.limit,
     };
 
 /// Live-region banner that explains the current game state.
@@ -635,6 +636,7 @@ class StatusBanner extends StatelessWidget {
       _Tone.good => (_green, Icons.emoji_events_rounded),
       _Tone.warn => (_amber, Icons.tips_and_updates_outlined),
       _Tone.bad => (_red, Icons.error_outline_rounded),
+      _Tone.limit => (_indigo, Icons.hourglass_bottom_rounded),
     };
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
@@ -1204,6 +1206,71 @@ class CodeBlock extends StatelessWidget {
               color: colors.text,
               fontFamily: 'monospace',
               fontFamilyFallback: const ['Courier New', 'Courier'])),
+    );
+  }
+}
+
+/// "5 h 12 min" / "8 min" until [at].
+String formatTimeUntil(DateTime at, [DateTime? now]) {
+  final d = at.difference(now ?? DateTime.now());
+  if (d.inMinutes >= 60) return '${d.inHours} h ${d.inMinutes % 60} min';
+  return '${math.max(1, d.inMinutes)} min';
+}
+
+/// Remaining live evaluations in the visitor's rolling 24-hour window.
+class QuotaMeter extends StatelessWidget {
+  final DailyQuota quota;
+  const QuotaMeter({super.key, required this.quota});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppTheme.getColors(context);
+    final ratio = quota.limit == 0 ? 0.0 : quota.remaining / quota.limit;
+    final color = ratio > 0.3 ? _indigo : (ratio > 0 ? _amber : _red);
+    final resetAt = quota.resetAt;
+    return Semantics(
+      label: '${quota.remaining} of ${quota.limit} live guesses left',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bolt_rounded, size: 16, color: color),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: [
+                    TextSpan(
+                        text: '${quota.remaining}',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800, color: colors.text)),
+                    TextSpan(text: ' of ${quota.limit} live guesses left'),
+                  ]),
+                  style: TextStyle(fontSize: 12.5, color: colors.textSecondary),
+                ),
+              ),
+              if (resetAt != null && quota.remaining < quota.limit)
+                Text('resets in ${formatTimeUntil(resetAt)}',
+                    style:
+                        TextStyle(fontSize: 11.5, color: colors.textSecondary)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: ratio),
+              duration: const Duration(milliseconds: 500),
+              builder: (_, v, __) => LinearProgressIndicator(
+                value: v,
+                minHeight: 5,
+                color: color,
+                backgroundColor: colors.text.withValues(alpha: 0.07),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
