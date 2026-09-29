@@ -594,13 +594,20 @@ class _SuggestionChips extends StatelessWidget {
                       color: AppTheme.primaryColor.withAlpha(isDark ? 70 : 50),
                     ),
                   ),
-                  child: Text(
-                    q.label,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: colors.text,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(q.icon, size: 14, color: AppTheme.primaryColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        q.label,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: colors.text,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

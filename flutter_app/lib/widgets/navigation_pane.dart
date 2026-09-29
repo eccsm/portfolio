@@ -129,7 +129,7 @@ class _NavigationPaneState extends State<NavigationPane> {
     final List<Map<String, dynamic>> navLinks = [
       {
         'title': 'Jev Guessr',
-        'icon': Icons.account_tree_outlined,
+        'icon': Icons.psychology_alt_rounded,
         'section': 'jev_guessr'
       },
       {
@@ -141,6 +141,11 @@ class _NavigationPaneState extends State<NavigationPane> {
         'title': 'Productivity',
         'icon': Icons.auto_awesome_rounded,
         'section': 'productivity'
+      },
+      {
+        'title': 'Ask the on-device AI',
+        'icon': Icons.memory_rounded,
+        'section': 'assistant'
       },
     ];
 
@@ -246,14 +251,26 @@ class _NavigationPaneState extends State<NavigationPane> {
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            children: navLinks
-                .map((link) => _buildNavLink(
-                      context,
-                      link['title'],
-                      link['icon'],
-                      link['section'],
-                    ))
-                .toList(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(26, 4, 26, 8),
+                child: Text(
+                  'EXPERIMENTS',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                    color: locationIconColor,
+                  ),
+                ),
+              ),
+              ...navLinks.map((link) => _buildNavLink(
+                    context,
+                    link['title'],
+                    link['icon'],
+                    link['section'],
+                  )),
+            ],
           ),
         ),
 

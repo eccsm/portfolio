@@ -10,9 +10,9 @@ import { education, certifications, languages } from '../data/resume';
         <h3>{entry.degree}</h3>
         <p class="org">{entry.institution} · {entry.location}</p>
         <p class="period">
-          <time datetime={entry.start}>{entry.periodLabel.split(' – ')[0]}</time>
+          <time datetime={entry.start}>{entry.periodLabel.split(/\s[-–]\s/)[0]}</time>
           {' – '}
-          <time datetime={entry.end}>{entry.periodLabel.split(' – ')[1]}</time>
+          <time datetime={entry.end}>{entry.periodLabel.split(/\s[-–]\s/)[1]}</time>
         </p>
       </article>
     ))}
