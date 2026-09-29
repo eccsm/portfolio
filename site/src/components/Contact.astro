@@ -1,5 +1,5 @@
 ---
-import { contact, profile } from '../data/resume';
+import { contact, cvPath, profile } from '../data/resume';
 ---
 
 <section id="contact" class="section" aria-labelledby="contact-heading">
@@ -12,6 +12,10 @@ import { contact, profile } from '../data/resume';
     <li>
       <span class="label">Email</span>
       <a href={`mailto:${contact.email}`}>{contact.email}</a>
+    </li>
+    <li>
+      <span class="label">CV</span>
+      <a href={cvPath} download data-umami-event="cv-download">Download PDF</a>
     </li>
     <li>
       <span class="label">LinkedIn</span>

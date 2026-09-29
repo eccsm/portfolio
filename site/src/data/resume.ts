@@ -9,7 +9,9 @@ export interface Profile {
   name: string;
   title: string;
   location: string;
-  /** One-paragraph professional summary shown in the hero. */
+  /** Two-line pitch shown in the hero. */
+  headline: string;
+  /** One-paragraph professional summary shown in the About section. */
   intro: string;
   /** Short tagline for meta descriptions and the og-image. */
   tagline: string;
@@ -18,6 +20,8 @@ export interface Profile {
 export const canonicalOrigin = "https://ekincan.casim.net";
 export const homepageCaseStudiesHref = "/#case-studies";
 export const homepageProjectsHref = "/#projects";
+/** Built by scripts/generate-cv.mjs at prebuild time. */
+export const cvPath = "/ekincan-casim-cv.pdf";
 
 export interface ExperienceEntry {
   company: string;
@@ -112,6 +116,32 @@ export interface SkillCategory {
   groups: { name: string; items: string[] }[];
 }
 
+/**
+ * Skills used in production in recent roles (each is evidenced in the
+ * experience entries). Shown first; everything else in `skills` renders
+ * under "Also worked with".
+ */
+export const coreSkills: string[] = [
+  "Java (11-21)",
+  "Spring Boot 3.x",
+  "Microservices",
+  "Domain-Driven Design",
+  "Event-Driven Architecture",
+  "Kafka",
+  "Redis",
+  "REST",
+  "Oracle",
+  "PostgreSQL",
+  "JPA/Hibernate tuning",
+  "Batch processing at scale",
+  "Kubernetes",
+  "Rancher",
+  "Jenkins",
+  "SonarQube",
+  "Dynatrace",
+  "Graylog",
+];
+
 export interface EducationEntry {
   institution: string;
   degree: string;
@@ -140,6 +170,9 @@ export const profile: Profile = {
   name: "Ekincan Casim",
   title: "Software Architect & Senior Java Engineer",
   location: "Istanbul, Turkey",
+  headline:
+    "I design and modernize enterprise platforms in insurance, banking, and " +
+    "retail - hands-on with Java 21, Spring Boot 3.x, Kafka, and Kubernetes.",
   intro:
     "Software Architect and Senior Java Engineer with 10+ years designing and " +
     "delivering enterprise-scale platforms in insurance, banking, and retail. " +
@@ -163,14 +196,11 @@ export const experiences: ExperienceEntry[] = [
     end: null,
     periodLabel: "Jul 2025 - Present",
     points: [
-      "Architect and hands-on lead for an enterprise insurance platform built on Java 17/21 and Spring Boot 3.x, serving core policy and claims operations.",
-      "Decomposed overloaded insurance domains into bounded contexts and independent microservices using domain-driven design, improving deployability and team ownership.",
+      "Architect and hands-on lead for an enterprise insurance platform (Java 17/21, Spring Boot 3.x) serving core policy and claims operations; decomposed overloaded domains into bounded contexts and independent microservices with domain-driven design.",
       "Designed event-driven policy issuance and claims flows on Kafka with Redis caching, improving real-time notification throughput.",
-      "Implemented data-protection compliance (KVKK) at the architecture level - response-layer masking, data classification, and audit trails - in collaboration with legal and security stakeholders.",
-      "Built high-volume batch processing pipelines (hundreds of thousands of records) with proper transaction isolation, chunking, and index optimization.",
-      "Established engineering standards: microservice templates, SonarQube quality gates, and code review practices, cutting onboarding time and technical debt.",
-      "Migrated observability from ELK to Graylog and operate Dynatrace-based monitoring; investigate and resolve production incidents.",
-      "Manage Rancher-orchestrated Kubernetes deployments with Jenkins CI/CD, reducing release cycle duration.",
+      "Embedded data-protection compliance (KVKK) into the architecture - response-layer masking, data classification, and audit trails - with legal and security stakeholders.",
+      "Built batch pipelines processing hundreds of thousands of records with proper transaction isolation, chunking, and index optimization.",
+      "Set engineering standards (microservice templates, SonarQube quality gates, code reviews) and run delivery and operations: Rancher-managed Kubernetes with Jenkins CI/CD, an ELK-to-Graylog migration, and Dynatrace monitoring.",
     ],
     tags: [
       "Java 17/21",

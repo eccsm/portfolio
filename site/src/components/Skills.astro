@@ -1,40 +1,74 @@
 ---
-import { skills } from '../data/resume';
+import { coreSkills, skills } from '../data/resume';
+
+// Everything not listed as core, grouped by category.
+const core = new Set(coreSkills);
+const also = skills
+  .map(({ category, groups }) => ({
+    category,
+    items: groups.flatMap((group) => group.items).filter((item) => !core.has(item)),
+  }))
+  .filter(({ items }) => items.length > 0);
 ---
 
 <section id="skills" class="section" aria-labelledby="skills-heading">
   <h2 id="skills-heading">Skills</h2>
-  <div class="grid">
-    {skills.map(({ category, groups }) => (
-      <div class="card">
-        <h3>{category}</h3>
-        {groups.map((group) => (
-          <div>
-            {groups.length > 1 && <h4>{group.name}</h4>}
-            <ul class="chip-list" aria-label={group.name}>
-              {group.items.map((item) => (
-                <li><span class="chip">{item}</span></li>
-              ))}
-            </ul>
-          </div>
-        ))}
+  <div class="card core">
+    <h3>Core expertise</h3>
+    <p class="muted note">Used in production in my recent roles.</p>
+    <ul class="chip-list" aria-label="Core expertise">
+      {coreSkills.map((item) => (
+        <li><span class="chip">{item}</span></li>
+      ))}
+    </ul>
+  </div>
+
+  <h3 class="sub-heading">Also worked with</h3>
+  <dl class="also">
+    {also.map(({ category, items }) => (
+      <div>
+        <dt>{category}</dt>
+        <dd>{items.join(' · ')}</dd>
       </div>
     ))}
-  </div>
+  </dl>
 </section>
 
 <style>
-  .grid {
+  .core {
+    border-left: 3px solid var(--color-accent-fill);
+  }
+
+  .core h3 {
+    margin: 0;
+  }
+
+  .note {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-small);
+  }
+
+  .sub-heading {
+    margin: var(--space-6) 0 var(--space-3);
+  }
+
+  .also {
+    margin: 0;
     display: grid;
-    gap: var(--space-5);
+    gap: var(--space-3) var(--space-5);
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   }
 
-  h4 {
-    margin: var(--space-4) 0 0;
+  dt {
     font-size: var(--text-chip);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-small);
   }
 </style>

@@ -1,25 +1,39 @@
 ---
-import { profile, contact } from '../data/resume';
+import { profile, contact, cvPath } from '../data/resume';
 ---
 
 <section id="top" class="section hero" aria-label="Introduction">
   <p class="kicker">{profile.location}</p>
   <h1>{profile.name}</h1>
   <p class="role">{profile.title}</p>
-  <p class="intro">{profile.intro}</p>
-  <ul class="hero-links" aria-label="Profiles">
+  <p class="headline">{profile.headline}</p>
+  <ul class="hero-actions" aria-label="Get in touch">
     <li><a class="button-primary" href={`mailto:${contact.email}`}>Email me</a></li>
-    <li><a class="button-secondary" href={contact.linkedin} rel="me" data-umami-event="outbound-linkedin">LinkedIn</a></li>
-    <li><a class="button-secondary" href={contact.github} rel="me" data-umami-event="outbound-github">GitHub</a></li>
-    <li><a class="button-secondary" href={contact.huggingface} rel="me" data-umami-event="outbound-huggingface">Hugging Face</a></li>
+    <li>
+      <a class="button-secondary" href={cvPath} download data-umami-event="cv-download">
+        Download CV <span class="muted">(PDF)</span>
+      </a>
+    </li>
+  </ul>
+  <ul class="profile-links" aria-label="Profiles">
+    <li><a href={contact.linkedin} rel="me" data-umami-event="outbound-linkedin">LinkedIn</a></li>
+    <li><a href={contact.github} rel="me" data-umami-event="outbound-github">GitHub</a></li>
+    <li><a href={contact.huggingface} rel="me" data-umami-event="outbound-huggingface">Hugging Face</a></li>
   </ul>
   <!-- Revealed by FlutterIsland's script when a Flutter build is present -->
-  <p class="interactive-cta" hidden>
+  <div class="interactive-cta card" hidden>
+    <div>
+      <p class="lab-title">Interactive Lab</p>
+      <p class="lab-desc">
+        Play Jev Guessr, a semantic guessing game; chat with an AI that runs
+        entirely in your browser; browse live GitHub activity.
+        <span class="interactive-note">Best on desktop.</span>
+      </p>
+    </div>
     <button type="button" class="button-secondary" data-launch-interactive hidden>
-      ▶ Explore Interactive Lab
+      Open the Lab <span aria-hidden="true">→</span>
     </button>
-    <span class="interactive-note">best on desktop</span>
-  </p>
+  </div>
 </section>
 
 <style>
@@ -45,43 +59,77 @@ import { profile, contact } from '../data/resume';
     font-size: var(--text-h3);
     color: var(--color-text-muted);
     font-weight: 600;
-    margin: var(--space-2) 0 var(--space-5);
+    margin: var(--space-2) 0 var(--space-4);
   }
 
-  .intro {
-    max-width: var(--content-width);
-    margin-bottom: var(--space-5);
+  .headline {
+    max-width: 38rem;
+    font-size: var(--text-h3);
+    margin: 0 0 var(--space-5);
   }
 
-  .hero-links {
+  .hero-actions,
+  .profile-links {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
-  .hero-links li {
+  .hero-actions {
+    gap: var(--space-3);
+  }
+
+  .profile-links {
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    font-size: var(--text-small);
+  }
+
+  .hero-actions li,
+  .profile-links li {
     margin: 0;
   }
 
   .interactive-cta {
-    margin: var(--space-4) 0 0;
+    margin: var(--space-6) 0 0;
+    max-width: var(--content-width);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3);
+    justify-content: space-between;
+    gap: var(--space-4);
+    border-left: 3px solid var(--color-accent-fill);
   }
 
-  .interactive-cta[hidden] {
+  .interactive-cta[hidden],
+  .interactive-cta button[hidden] {
     display: none;
+  }
+
+  .interactive-cta button {
+    font: inherit;
+    font-weight: 600;
+  }
+
+  .interactive-cta > div {
+    flex: 1 1 18rem;
+  }
+
+  .lab-title {
+    margin: 0 0 var(--space-1);
+    font-weight: 700;
+  }
+
+  .lab-desc {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-small);
   }
 
   .interactive-note {
     display: none;
-    color: var(--color-text-muted);
-    font-size: var(--text-chip);
-    font-family: var(--font-mono);
   }
 
   @media (max-width: 768px) {
