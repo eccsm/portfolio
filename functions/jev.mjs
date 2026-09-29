@@ -1,4 +1,6 @@
 // Contract verified against https://docs.typesafe.ai/api on 2026-09-22.
+import {visitorKey} from './quota.mjs';
+
 export const objects = {
   FRUIT: ['APPLE', 'PEAR', 'ORANGE', 'BANANA', 'OTHER'],
   ANIMAL: ['DOG', 'CAT', 'RABBIT', 'HORSE', 'OTHER'],
@@ -65,17 +67,69 @@ export function mapResponse(body, category, apiLatencyMs) {
     model: body.model, apiLatencyMs,
   };
 }
-export function createHandler({key, enabled, model = 'jev-latest', fetchImpl = fetch, timeoutMs = 10000}) {
+/** Public quota shape for clients: never includes the visitor key. */
+function quotaView({limit, remaining, resetAt}) {
+  return {limit, remaining, resetAt};
+}
+
+function setRateLimitHeaders(res, q, now) {
+  res.set('RateLimit-Limit', String(q.limit));
+  res.set('RateLimit-Remaining', String(q.remaining));
+  if (q.resetAt) res.set('RateLimit-Reset', String(Math.max(0, Math.ceil((q.resetAt - now) / 1000))));
+}
+
+export function createHandler({key, enabled, model = 'jev-latest', fetchImpl = fetch, timeoutMs = 10000,
+  quota = null, now = Date.now}) {
   return async (req, res) => {
     res.set('Cache-Control', 'no-store');
     if (!enabled()) return res.status(503).json({error: 'unavailable'});
-    if (req.method !== 'POST') return res.set('Allow', 'POST').status(405).json({error: 'methodNotAllowed'});
+    // GET reports the caller's remaining quota; it never reaches upstream.
+    if (req.method === 'GET' && quota) {
+      const secret = key();
+      if (!secret) return res.status(503).json({error: 'unavailable'});
+      try {
+        const q = await quota.peek(visitorKey(req, secret));
+        setRateLimitHeaders(res, q, now());
+        return res.json({quota: quotaView(q)});
+      } catch {
+        return res.status(503).json({error: 'unavailable'});
+      }
+    }
+    if (req.method !== 'POST') return res.set('Allow', quota ? 'GET, POST' : 'POST').status(405).json({error: 'methodNotAllowed'});
     if (!req.is('application/json')) return res.status(415).json({error: 'invalidDescription'});
     if (req.rawBody?.length > 4096) return res.status(413).json({error: 'invalidDescription'});
     const state = safeState(req.body);
     if (!state) return res.status(400).json({error: 'invalidDescription'});
     const secret = key();
     if (!secret) return res.status(503).json({error: 'unavailable'});
+
+    // Quota is taken only for valid requests, before any paid upstream call.
+    let visitor = null;
+    let q = null;
+    if (quota) {
+      visitor = visitorKey(req, secret);
+      try {
+        q = await quota.take(visitor);
+      } catch {
+        return res.status(503).json({error: 'unavailable'});
+      }
+      setRateLimitHeaders(res, q, now());
+      if (!q.allowed) {
+        res.set('Retry-After', String(Math.max(1, Math.ceil((q.resetAt - now()) / 1000))));
+        return res.status(429).json({error: q.reason === 'global' ? 'busy' : 'dailyLimit', quota: quotaView(q)});
+      }
+    }
+    const refund = async () => {
+      if (!quota) return;
+      try {
+        await quota.refund(visitor);
+        q = {...q, remaining: q.remaining + 1};
+        setRateLimitHeaders(res, q, now());
+      } catch {
+        // Best effort: a missed refund costs the visitor one attempt.
+      }
+    };
+
     const started = performance.now();
     try {
       const response = await fetchImpl('https://api.typesafe.ai/v1/systemone', {
@@ -83,10 +137,15 @@ export function createHandler({key, enabled, model = 'jev-latest', fetchImpl = f
         headers: {'Content-Type': 'application/json', Authorization: `Bearer ${secret}`},
         body: JSON.stringify(requestFor(state, model)),
       });
-      if (!response.ok) return res.status(response.status === 429 ? 429 : 502).json({error: response.status === 429 ? 'rateLimited' : 'upstreamFailure'});
+      if (!response.ok) {
+        await refund();
+        return res.status(response.status === 429 ? 429 : 502).json({error: response.status === 429 ? 'rateLimited' : 'upstreamFailure'});
+      }
       const body = await response.json();
-      return res.json(mapResponse(body, state.category, Math.round(performance.now() - started)));
+      const mapped = mapResponse(body, state.category, Math.round(performance.now() - started));
+      return res.json(q ? {...mapped, quota: quotaView(q)} : mapped);
     } catch {
+      await refund();
       return res.status(502).json({error: 'upstreamFailure'});
     }
   };

@@ -7,13 +7,40 @@ abstract interface class SemanticDecisionProvider {
   void dispose();
 }
 
-class DecisionFailure implements Exception {
-  final String message;
-  const DecisionFailure(
-      [this.message = 'The decision service is unavailable. Please retry.']);
+/// Implemented by providers backed by a metered service.
+abstract interface class QuotaSource {
+  Future<DailyQuota?> fetchQuota();
 }
 
-class JevSemanticDecisionProvider implements SemanticDecisionProvider {
+class DecisionFailure implements Exception {
+  final String message;
+
+  /// Set when the failure is a quota refusal rather than an outage.
+  final DailyQuota? quota;
+  final bool limitReached;
+  const DecisionFailure(
+      [this.message = 'The decision service is unavailable. Please retry.',
+      this.quota,
+      this.limitReached = false]);
+}
+
+DailyQuota? parseQuota(dynamic json) {
+  if (json is! Map<String, dynamic>) return null;
+  final limit = json['limit'], remaining = json['remaining'];
+  final resetAt = json['resetAt'];
+  if (limit is! int || remaining is! int || limit < 0 || remaining < 0) {
+    return null;
+  }
+  return DailyQuota(
+      limit,
+      remaining,
+      resetAt is int
+          ? DateTime.fromMillisecondsSinceEpoch(resetAt, isUtc: true)
+          : null);
+}
+
+class JevSemanticDecisionProvider
+    implements SemanticDecisionProvider, QuotaSource {
   final http.Client _client;
   final Uri endpoint;
   JevSemanticDecisionProvider({http.Client? client, Uri? endpoint})
@@ -29,12 +56,27 @@ class JevSemanticDecisionProvider implements SemanticDecisionProvider {
               body: jsonEncode(state.toJson()))
           .timeout(const Duration(seconds: 15));
       if (response.statusCode == 429) {
+        final body = _tryJson(response.body);
+        final quota = parseQuota(body?['quota']);
+        switch (body?['error']) {
+          case 'dailyLimit':
+            throw DecisionFailure(
+                'You have used all ${quota?.limit ?? ''} live guesses for now.',
+                quota,
+                true);
+          case 'busy':
+            throw DecisionFailure(
+                'Jev has reached its daily budget for all visitors. Try again tomorrow.',
+                quota,
+                true);
+        }
         throw const DecisionFailure(
             'Too many requests. Wait a moment, then retry.');
       }
       if (response.statusCode != 200) throw const DecisionFailure();
-      return mapDecision(
-          jsonDecode(response.body) as Map<String, dynamic>, state.category);
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return mapDecision(json, state.category,
+          quota: parseQuota(json['quota']));
     } on DecisionFailure {
       rethrow;
     } catch (_) {
@@ -43,7 +85,28 @@ class JevSemanticDecisionProvider implements SemanticDecisionProvider {
   }
 
   @override
+  Future<DailyQuota?> fetchQuota() async {
+    try {
+      final response =
+          await _client.get(endpoint).timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) return null;
+      return parseQuota(_tryJson(response.body)?['quota']);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   void dispose() => _client.close();
+}
+
+Map<String, dynamic>? _tryJson(String body) {
+  try {
+    final value = jsonDecode(body);
+    return value is Map<String, dynamic> ? value : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 double _bounded(dynamic value, [double max = 1]) {
@@ -65,8 +128,8 @@ Map<String, double> _distribution(dynamic value, List<String> keys) {
   return result;
 }
 
-SemanticDecision mapDecision(
-    Map<String, dynamic> json, GuessCategory category) {
+SemanticDecision mapDecision(Map<String, dynamic> json, GuessCategory category,
+    {DailyQuota? quota}) {
   final c = json['identity'] as Map<String, dynamic>;
   final n = json['sufficiency'] as Map<String, dynamic>;
   final s = json['ambiguity'] as Map<String, dynamic>;
@@ -100,6 +163,7 @@ SemanticDecision mapDecision(
                 .map((k, v) => MapEntry(int.parse(k), v))),
     model: model,
     apiLatencyMs: latency,
+    quota: quota,
   );
 }
 
