@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "node scripts/generate-og.mjs && node scripts/emit-resume-json.mjs",
+    "prebuild": "node scripts/generate-og.mjs && node scripts/generate-cv.mjs && node scripts/emit-resume-json.mjs",
     "build": "astro build",
     "prepare:indexnow": "node scripts/indexnow-key.mjs prepare",
     "cleanup:indexnow": "node scripts/indexnow-key.mjs cleanup",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "pdfkit": "^0.17.2",
     "satori": "^0.12.2",
     "subset-font": "^2.5.0"
   },

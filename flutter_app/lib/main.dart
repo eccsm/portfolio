@@ -1,5 +1,6 @@
 import 'dart:ui' show FlutterView;
 import 'labs/jev_guessr/jev_guessr_page.dart';
+import 'labs/lab_registry.dart';
 
 import 'package:cc_resume_app/data/resume_repository.dart';
 import 'package:cc_resume_app/models/resume.dart';
@@ -204,14 +205,16 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
   // Chat state — no longer initializes WebLLM here
   bool _chatOpen = false;
 
-  final Map<String, GlobalKey> _sectionKeys = {
-    'jev_guessr': GlobalKey(),
+  static const _lab = LabConfig();
+
+  late final Map<String, GlobalKey> _sectionKeys = {
+    if (_lab.jevAvailable) 'jev_guessr': GlobalKey(),
     'github_contributions': GlobalKey(),
     'productivity': GlobalKey(),
   };
 
   final ScrollController _scrollController = ScrollController();
-  String _activeSection = 'jev_guessr';
+  late String _activeSection = _sectionKeys.keys.first;
 
   @override
   void initState() {
@@ -224,7 +227,7 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
   }
 
   void _updateActiveSectionOnScroll() {
-    String current = 'jev_guessr';
+    String current = _sectionKeys.keys.first;
     double best = double.negativeInfinity;
     for (final entry in _sectionKeys.entries) {
       final ctx = entry.value.currentContext;
@@ -288,8 +291,7 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
   Widget _buildInteractiveContent() {
     final isLargeScreen = ResponsiveBreakpoints.of(context).largerThan(TABLET);
     const accentColor = AppTheme.primaryColor;
-    const provider =
-        String.fromEnvironment('JEV_PROVIDER', defaultValue: 'mock');
+    final jev = _lab.jevAvailable;
 
     return SingleChildScrollView(
       controller: _scrollController,
@@ -306,16 +308,19 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
           HeroSection(
             onDownloadCv: () => PdfConfig.exportResumePdf(context),
             onOpenChat: _openChat,
-            onPrimaryAction: () => _scrollToSection('jev_guessr'),
+            onPrimaryAction: () =>
+                _scrollToSection(jev ? 'jev_guessr' : 'github_contributions'),
+            primaryActionLabel: jev ? 'Play Jev Guessr' : 'View live activity',
             showSocialIcons: !isLargeScreen,
             features: [
-              HeroFeature(
-                icon: Icons.psychology_alt_rounded,
-                title: 'Jev Guessr',
-                subtitle: 'Semantic decisions, explained',
-                color: AppTheme.primaryColor,
-                onTap: () => _scrollToSection('jev_guessr'),
-              ),
+              if (jev)
+                HeroFeature(
+                  icon: Icons.psychology_alt_rounded,
+                  title: 'Jev Guessr',
+                  subtitle: 'Semantic decisions, explained',
+                  color: AppTheme.primaryColor,
+                  onTap: () => _scrollToSection('jev_guessr'),
+                ),
               HeroFeature(
                 icon: Icons.memory_rounded,
                 title: 'On-device AI',
@@ -333,15 +338,13 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
             ],
           ),
           // Jev renders its own card chrome — it is the lab's centrepiece.
-          RevealOnScroll(
-            child: Container(
-              key: _sectionKeys['jev_guessr'],
-              child: const JevGuessrPage(
-                mock: provider != 'typesafe',
-                embedded: true,
+          if (jev)
+            RevealOnScroll(
+              child: Container(
+                key: _sectionKeys['jev_guessr'],
+                child: JevGuessrPage(mock: _lab.jevMock, embedded: true),
               ),
             ),
-          ),
           RevealOnScroll(
             child: Container(
               key: _sectionKeys['github_contributions'],
@@ -713,6 +716,7 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
               onPdfExport: () => PdfConfig.exportResumePdf(context),
               onNavigate: _scrollToSection,
               activeSection: _activeSection,
+              showJev: _lab.jevAvailable,
             ),
       floatingActionButton: _buildChatButton(),
       body: Column(
@@ -731,6 +735,7 @@ class _ResumePageState extends State<ResumePage> with WidgetsBindingObserver {
                           onPdfExport: () => PdfConfig.exportResumePdf(context),
                           onNavigate: _scrollToSection,
                           activeSection: _activeSection,
+                          showJev: _lab.jevAvailable,
                           extraWidgets: const [
                             ThemeToggleWidget(isCompact: true),
                           ],

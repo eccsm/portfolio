@@ -10,6 +10,7 @@ class NavigationPane extends StatefulWidget {
   final Function(String)? onNavigate;
   final String activeSection;
   final List<Widget>? extraWidgets;
+  final bool showJev;
 
   const NavigationPane({
     super.key,
@@ -18,6 +19,7 @@ class NavigationPane extends StatefulWidget {
     this.onNavigate,
     this.activeSection = '',
     this.extraWidgets,
+    this.showJev = true,
   });
 
   @override
@@ -127,11 +129,12 @@ class _NavigationPaneState extends State<NavigationPane> {
         : AppTheme.primaryColor.withAlpha(60);
 
     final List<Map<String, dynamic>> navLinks = [
-      {
-        'title': 'Jev Guessr',
-        'icon': Icons.psychology_alt_rounded,
-        'section': 'jev_guessr'
-      },
+      if (widget.showJev)
+        {
+          'title': 'Jev Guessr',
+          'icon': Icons.psychology_alt_rounded,
+          'section': 'jev_guessr'
+        },
       {
         'title': 'GitHub Contributions',
         'icon': Icons.grid_on_rounded,

@@ -9,6 +9,12 @@ class LabConfig {
           const bool.fromEnvironment('ENABLE_JEV_GUESSR', defaultValue: false),
       this.provider =
           const String.fromEnvironment('JEV_PROVIDER', defaultValue: 'mock')});
+
+  /// Jev is shown only when enabled with a known provider; anything else
+  /// fails closed.
+  bool get jevAvailable =>
+      enableJev && const ['mock', 'typesafe'].contains(provider);
+  bool get jevMock => provider != 'typesafe';
 }
 
 class LabExperiment {
@@ -28,7 +34,7 @@ List<LabExperiment> labRegistry(WidgetBuilder localIntelligence,
           'Explore generative inference in your browser with the portfolio assistant.',
           ['WebGPU', 'MLC LLM'],
           localIntelligence),
-      if (config.enableJev && ['mock', 'typesafe'].contains(config.provider))
+      if (config.jevAvailable)
         LabExperiment(
             'jev-guessr',
             '02 · Semantic Decisions',
@@ -40,5 +46,5 @@ List<LabExperiment> labRegistry(WidgetBuilder localIntelligence,
               'Score',
               if (config.provider == 'mock') 'Mock'
             ],
-            (_) => JevGuessrPage(mock: config.provider == 'mock')),
+            (_) => JevGuessrPage(mock: config.jevMock)),
     ];
