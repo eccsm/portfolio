@@ -123,6 +123,12 @@ class ManifestBadgeRepository implements BadgeRepository {
         palette: BadgePalette.linguana,
         label: 'Linguana',
       ),
+      BadgeData.asset(
+        'assets/images/lexy_app_logo.png',
+        url: 'https://play.google.com/store/apps/details?id=net.casim.voicenotes',
+        palette: BadgePalette.lexy,
+        label: 'Lexy',
+      ),
     ];
   }
 }
@@ -165,6 +171,7 @@ class BadgePalette {
   );
   static const harmonova = BadgePalette(Color(0xFF1A4B71), Color(0xFF1A4B71));
   static const linguana = BadgePalette(Color(0xFF1F5A43), Color(0xFF1F5A43));
+  static const lexy = BadgePalette(Color(0xFFF7894A), Color(0xFFF7894A));
 }
 
 class _BadgeGrid extends StatelessWidget {
