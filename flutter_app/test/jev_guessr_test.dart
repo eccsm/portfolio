@@ -210,7 +210,8 @@ void main() {
   });
   test('live quota is read on start, updated per answer and enforced',
       () async {
-    final reset = DateTime.utc(2026, 9, 30, 10).millisecondsSinceEpoch;
+    final reset =
+        DateTime.now().add(const Duration(hours: 3)).millisecondsSinceEpoch;
     var remaining = 2;
     final requests = <String>[];
     Map<String, dynamic> answer(String choice) => {
